@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>주사위 프리셋 베이킹 스튜디오</title>
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/gh/sun-typeface/SUIT@2/fonts/variable/woff2/SUIT-Variable.css" rel="stylesheet">
+  <link rel="stylesheet" href="/src/style.css" />
+  <style>
+    :root {
+      --bg-dark: #0f1015;
+      --panel-bg: rgba(18, 20, 29, 0.95);
+      --accent: #ffd700;
+      --accent-hover: #ffea75;
+      --primary: #2d68c4;
+      --primary-hover: #3d7ee0;
+      --success: #238636;
+      --success-hover: #2ea043;
+      --danger: #da3633;
+      --card-bg: #181b26;
+      --border: #2a2e3f;
+      --text: #e6edf3;
+      --text-muted: #8b949e;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: var(--bg-dark);
+      font-family: 'SUIT Variable', -apple-system, sans-serif;
+      color: var(--text);
+      display: flex;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    #viewer-container {
+      flex: 1;
+      height: 100vh;
+      position: relative;
+      background: radial-gradient(circle at center, #1a1520 0%, #0d0a10 100%);
+    }
+
+    .camera-tools {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      z-index: 5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      background: rgba(15, 17, 25, 0.85);
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      backdrop-filter: blur(8px);
+    }
+    .camera-tools button { text-align: center; white-space: nowrap; font-size: 0.8rem; padding: 6px 10px; }
+    .camera-angle {
+      height: 110px;
+      writing-mode: vertical-lr;
+      direction: rtl;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .playback-overlay {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(15, 17, 25, 0.9);
+      padding: 10px 20px;
+      border-radius: 30px;
+      border: 1px solid var(--border);
+      backdrop-filter: blur(10px);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    }
+    .playback-overlay button {
+      background: #252a3d;
+      border: 1px solid #3d4563;
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      color: #fff;
+    }
+    .playback-overlay button:hover:not(:disabled) {
+      background: var(--primary);
+    }
+    .playback-overlay button.active {
+      background: var(--accent);
+      color: #000;
+      font-weight: bold;
+    }
+
+    .ui-panel {
+      width: 380px;
+      height: 100vh;
+      background: var(--panel-bg);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      box-sizing: border-box;
+      z-index: 10;
+      backdrop-filter: blur(16px);
+    }
+
+    .panel-header {
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(25, 28, 42, 0.6);
+    }
+    .panel-header h2 {
+      margin: 0;
+      font-size: 1.15rem;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .panel-header .sub {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .panel-content {
+      flex: 1;
+      padding: 18px 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .section-title {
+      font-size: 0.85rem;
+      color: var(--accent);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      font-weight: 700;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .subsection-title {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin: 4px 0 6px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+    }
+
+    .btn-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .btn-row {
+      display: flex;
+      gap: 6px;
+    }
+    .btn-row button, .btn-row select {
+      flex: 1;
+    }
+
+    button {
+      background: #252a3d;
+      color: var(--text);
+      border: 1px solid #3d4563;
+      padding: 9px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+      font-family: 'SUIT Variable', sans-serif;
+      transition: all 0.15s ease;
+      text-align: center;
+      font-size: 0.85rem;
+    }
+    button:hover:not(:disabled) {
+      background: #343c57;
+      border-color: #58658f;
+    }
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      border-color: #3b7ad6;
+    }
+    .btn-primary:hover:not(:disabled) {
+      background: var(--primary-hover);
+    }
+    .btn-success {
+      background: var(--success);
+      border-color: #2ea043;
+    }
+    .btn-success:hover:not(:disabled) {
+      background: var(--success-hover);
+    }
+    .btn-bake {
+      background: linear-gradient(135deg, #e65100 0%, #ff8f00 100%);
+      border: none;
+      color: #fff;
+      font-size: 0.95rem;
+      padding: 12px;
+      font-weight: 800;
+      box-shadow: 0 4px 15px rgba(230, 81, 0, 0.4);
+    }
+    .btn-bake:hover:not(:disabled) {
+      background: linear-gradient(135deg, #f57c00 0%, #ffa000 100%);
+      transform: translateY(-1px);
+    }
+
+    #model-list button.active {
+      background: var(--accent);
+      color: #000;
+      font-weight: 800;
+      border-color: var(--accent);
+    }
+
+    select, input {
+      background: #1e2233;
+      color: #fff;
+      border: 1px solid var(--border);
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 0.85rem;
+      outline: none;
+    }
+    select:focus, input:focus {
+      border-color: var(--accent);
+    }
+
+    .preset-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 320px;
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+    .preset-sub-header {
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 4px 2px;
+      margin-top: 4px;
+    }
+    .preset-divider {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 8px 0 4px;
+      font-size: 0.74rem;
+      font-weight: 800;
+      color: var(--accent);
+      border-top: 1px dashed var(--border);
+      padding-top: 8px;
+    }
+    .preset-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 7px 10px;
+      background: #181b26;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 0.8rem;
+      transition: all 0.15s;
+    }
+    .preset-item:hover {
+      background: #232838;
+      border-color: #485273;
+    }
+    .preset-item.selected {
+      border-color: var(--accent);
+      background: rgba(255, 215, 0, 0.14);
+    }
+    .preset-item.is-kept {
+      border-left: 4px solid var(--accent);
+      background: rgba(255, 215, 0, 0.04);
+    }
+    .preset-item.is-new {
+      border-left: 4px solid #3d7ee0;
+    }
+
+    .preset-info {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .preset-title {
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .preset-meta {
+      font-size: 0.70rem;
+      color: var(--text-muted);
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .preset-actions {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .btn-mini-action {
+      padding: 3px 8px;
+      font-size: 0.72rem;
+      border-radius: 4px;
+      background: #252a3d;
+      font-weight: 700;
+    }
+    .btn-mini-action.btn-adopt {
+      background: rgba(45, 104, 196, 0.35);
+      color: #79b8ff;
+      border: 1px solid rgba(45, 104, 196, 0.5);
+    }
+    .btn-mini-action.btn-adopt:hover {
+      background: var(--primary);
+      color: #fff;
+    }
+    .btn-mini-action.btn-remove {
+      background: rgba(218, 54, 51, 0.2);
+      color: #ff7b72;
+      border: 1px solid rgba(218, 54, 51, 0.35);
+    }
+    .btn-mini-action.btn-remove:hover {
+      background: var(--danger);
+      color: #fff;
+    }
+
+    .progress-bar-container {
+      width: 100%;
+      height: 6px;
+      background: #181b26;
+      border-radius: 3px;
+      overflow: hidden;
+      margin-top: 6px;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #ff8f00, #ffd700);
+      transition: width 0.1s ease;
+    }
+
+    .status-text {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 6px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .footer-actions {
+      padding: 16px 20px;
+      border-top: 1px solid var(--border);
+      background: rgba(25, 28, 42, 0.6);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .badge {
+      font-size: 0.72rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: bold;
+    }
+    .badge-success { background: rgba(35, 134, 54, 0.25); color: #3fb950; border: 1px solid rgba(63, 185, 80, 0.3); }
+    .badge-gold { background: rgba(255, 215, 0, 0.2); color: #ffd700; border: 1px solid rgba(255, 215, 0, 0.3); }
+    .badge-blue { background: rgba(45, 104, 196, 0.2); color: #79b8ff; border: 1px solid rgba(45, 104, 196, 0.3); }
+  </style>
+</head>
+<body>
+  <div class="ui-panel">
+    <div class="panel-header">
+      <h2>🎲 프리셋 베이킹 스튜디오</h2>
+      <div class="sub">Unity 규격 동기화 (Scale 0.05 / Die 0.78)</div>
+    </div>
+    
+    <div class="panel-content">
+      <!-- 1. 시나리오 설정 및 50개 배치 베이킹 -->
+      <div class="card">
+        <div class="section-title">
+          <span>1. 베이킹 시나리오 설정</span>
+          <span class="badge badge-gold">50개 단위 배치</span>
+        </div>
+
+        <div class="subsection-title">전체 주사위 개수 & 혼합 구성</div>
+        <div class="btn-row" style="margin-bottom: 8px;">
+          <select id="dice-count">
+            <option value="5" selected>주사위 5개 (기본)</option>
+            <option value="1">주사위 1개</option>
+            <option value="2">주사위 2개</option>
+            <option value="3">주사위 3개</option>
+            <option value="4">주사위 4개</option>
+            <option value="6">주사위 6개 (확장)</option>
+          </select>
+          <select id="octa-count">
+            <option value="0" selected>8면체 0개 (D6만)</option>
+            <option value="1">8면체 1개 혼합</option>
+            <option value="2">8면체 2개 혼합</option>
+            <option value="3">8면체 3개 혼합</option>
+          </select>
+        </div>
+
+        <div class="subsection-title">투척 모드</div>
+        <div class="btn-row" style="margin-bottom: 12px;">
+          <select id="bake-mode">
+            <option value="normal" selected>일반 투척 (Normal)</option>
+            <option value="octahedron">8면체 혼합 (Octahedron)</option>
+            <option value="flip">판 뒤집기 (Flip)</option>
+          </select>
+        </div>
+
+        <!-- 50개 배치 베이킹 실행 버튼 -->
+        <button id="btn-bake-batch" class="btn-bake" style="width: 100%;">
+          ⚡ 50개 배치 자동 베이킹 (Bake 50)
+        </button>
+
+        <div class="progress-bar-container" id="progress-container" style="display: none;">
+          <div class="progress-bar-fill" id="progress-fill"></div>
+        </div>
+        <div id="bake-status" class="status-text">대기 중...</div>
+      </div>
+
+      <!-- 2. 프리셋 후보군 및 채택 보존 목록 (2단 분리) -->
+      <div class="card">
+        <div class="section-title">
+          <span>2. 주사위 프리셋 선별 / 채택</span>
+          <span id="current-scenario-badge" class="badge badge-blue">새 시나리오</span>
+        </div>
+        <div class="btn-row" style="margin-bottom: 8px;">
+          <button id="btn-auto-keep-20" class="btn-primary" style="font-size: 0.78rem;">
+            ✨ 상위 20개 자동 채택
+          </button>
+          <button id="btn-clear-kept" style="font-size: 0.78rem;">
+            채택 전체 해제
+          </button>
+        </div>
+        <div class="preset-list" id="preset-list">
+          <div class="status-text">저장된 프리셋을 불러오거나 1번에서 베이킹을 실행하세요.</div>
+        </div>
+      </div>
+
+      <!-- 3. 저장된 프리셋 불러오기 -->
+      <div class="card">
+        <div class="section-title">
+          <span>3. 저장된 프리셋 불러오기</span>
+          <span class="badge badge-gold">기존 파일 연동</span>
+        </div>
+        <div class="btn-row">
+          <select id="saved-preset-file">
+            <option value="">저장 프리셋 목록 로딩 중...</option>
+          </select>
+          <button id="btn-load-saved-preset" class="btn-primary" style="flex: 0 0 85px;">불러오기</button>
+        </div>
+      </div>
+
+      <!-- 4. 모델 재질 및 테마 -->
+      <div class="card">
+        <div class="section-title">
+          <span>4. 주사위 모델/재질 미리보기</span>
+        </div>
+        <div id="model-list" class="btn-row" style="flex-wrap: wrap;"></div>
+        <div id="model-status" class="status-text">일반 6면체</div>
+      </div>
+    </div>
+
+    <!-- 하단 확정 팩 내보내기 -->
+    <div class="footer-actions">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-weight: 700; font-size: 0.9rem;">
+          확정된 프리셋: <span id="kept-count" style="color: var(--accent); font-size: 1.1rem;">0</span> / 20개
+        </span>
+        <button id="btn-play-current" class="btn-primary" style="padding: 6px 12px; font-size: 0.8rem;" disabled>
+          ▶ 선택 재생
+        </button>
+      </div>
+      <button id="btn-export-json" class="btn-success" style="width: 100%; padding: 11px;" disabled>
+        💾 최종 20개 프리셋 JSON 내보내기
+      </button>
+      <button id="btn-sync-unity" class="btn-primary" style="width: 100%; padding: 9px; font-size: 0.8rem;" disabled>
+        📁 Unity StreamingAssets 폴더로 직접 복사/적용
+      </button>
+    </div>
+  </div>
+
+  <div id="viewer-container">
+    <div class="camera-tools">
+      <button id="btn-camera-top">탑다운 (90°)</button>
+      <button id="btn-camera-quarter">사각 (35°)</button>
+      <button id="btn-camera-reset">초기화</button>
+      <input type="range" id="camera-angle" class="camera-angle" min="5" max="85" value="15" />
+      <span id="camera-angle-value" style="font-size: 0.7rem; font-family: monospace;">15°</span>
+    </div>
+
+    <div class="playback-overlay">
+      <button id="btn-overlay-play">▶ 재생</button>
+      <button id="btn-overlay-pause">⏸ 일시정지</button>
+      <button id="btn-overlay-loop" class="active">🔁 루프 ON</button>
+      <button id="btn-overlay-speed">속도: 1.0x</button>
+    </div>
+  </div>
+
+  <script type="module" src="/src/presetStudio.js"></script>
+</body>
+</html>

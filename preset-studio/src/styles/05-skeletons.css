@@ -1,0 +1,199 @@
+/* =====================================================
+   Skeleton Screen System
+===================================================== */
+@keyframes skeleton-pulse {
+  0% {
+    background-color: rgba(200, 200, 200, 0.4);
+  }
+  50% {
+    background-color: rgba(235, 235, 235, 0.9);
+  }
+  100% {
+    background-color: rgba(200, 200, 200, 0.4);
+  }
+}
+
+.skeleton-box {
+  animation: skeleton-pulse 1.4s infinite ease-in-out !important;
+  border-color: transparent !important;
+  color: transparent !important;
+  box-shadow: none !important;
+  user-select: none !important;
+  pointer-events: none !important;
+}
+
+/* 1. 프로필 카드 스켈레톤 */
+.profile-avatar-placeholder.skeleton-box {
+  border-radius: 12px !important;
+  background-image: none !important;
+}
+
+.skeleton-text-name {
+  width: 120px;
+  height: 22px;
+  margin: 2px auto 6px auto;
+  border-radius: 6px;
+}
+
+.skeleton-text-status {
+  width: 170px;
+  height: 16px;
+  margin: 0 auto;
+  border-radius: 4px;
+}
+
+/* 2. 경기 기록 세부 요소 스켈레톤 */
+.skel-match-item {
+  pointer-events: none;
+}
+.skel-mode-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+}
+.skel-mode-text {
+  width: 32px;
+  height: 12px;
+  border-radius: 4px;
+  margin-top: 4px;
+}
+.skel-avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 6px;
+}
+.skel-name {
+  width: 60px;
+  height: 12px;
+  border-radius: 4px;
+}
+.skel-score {
+  width: 28px;
+  height: 14px;
+  border-radius: 4px;
+}
+.skel-badge {
+  width: 44px;
+  height: 22px;
+  border-radius: 6px;
+  margin: 0 auto;
+}
+.skel-date {
+  width: 48px;
+  height: 12px;
+  border-radius: 4px;
+  margin: 0 auto;
+}
+
+/* 3. 버건디 매트 스켈레톤 (원본 회색 펄스 복원, 테두리 제거) */
+/* 프로필 상단 헤더 스켈레톤 */
+.skeleton-profile-title {
+  width: 110px;
+  height: 24px;
+  border-radius: 6px;
+  display: inline-block;
+}
+
+.skeleton-icon-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: inline-block;
+}
+
+/* controls-area 텍스트 박스 스켈레톤 (높이 24px 정밀 핏 + 둥근 모서리 6px) */
+#game-status.skeleton-box {
+  flex: none !important;
+  width: 110px !important;
+  height: 24px !important;
+  border-radius: 6px !important;
+  display: inline-block;
+}
+
+#rolls-left.skeleton-box {
+  flex: none !important;
+  width: 95px !important;
+  height: 24px !important;
+  border-radius: 6px !important;
+  display: inline-block;
+}
+
+#turn-timer.skeleton-box {
+  flex: none !important;
+  width: 50px !important;
+  height: 24px !important;
+  border-radius: 6px !important;
+  display: inline-flex !important;
+}
+
+/* 버건디 매트 & 카지노 프레임 1:1 정사각형 원본 비율 완전 보존 */
+#playable-section .controls-area,
+#playable-section #btn-roll {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+#btn-roll.skeleton-btn-roll {
+  height: 48px !important;
+  width: 100% !important;
+  border-radius: 8px !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* 4. Play Menu 스켈레톤 */
+.skeleton-menu-title {
+  width: 180px;
+  height: 28px;
+  margin: 0 auto 20px auto;
+  border-radius: 6px;
+}
+
+.skeleton-menu-btn {
+  width: 100%;
+  height: 44px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+}
+
+.skeleton-fade-in {
+  transition: opacity 0.25s ease-in-out;
+}
+
+/* -------------------------------------------
+   Play Menu Top Bar Sub-menu Buttons (Modern Design)
+------------------------------------------- */
+.play-menu-top-bar {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  margin-bottom: 12px;
+  justify-content: flex-end;
+}
+
+.btn-play-submenu-icon {
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--bg-color, #f5f5f5);
+  color: var(--text-color, #111111);
+  border: 1px solid var(--border-color, #e5e5e5);
+  border-radius: var(--radius, 12px);
+  padding: 0;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-play-submenu-icon:hover {
+  background-color: var(--primary-color, #1a1a1a);
+  color: #ffffff;
+  border-color: var(--primary-color, #1a1a1a);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-sm);
+}
+
+.btn-play-submenu-icon:active {
+  transform: translateY(0);
+}

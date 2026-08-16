@@ -1,0 +1,9 @@
+=== normal_dice.fbx Analysis (Engraved Pips) ===
+Value 1: count=1, rawCenter=(0.000, 0.810, 0.000), normal=(0.000, 1.000, 0.000)
+Value 2: count=2, rawCenter=(-0.000, -0.000, 0.810), normal=(-0.000, -0.000, 1.000)
+Value 3: count=3, rawCenter=(0.810, 0.000, 0.000), normal=(1.000, 0.000, 0.000)
+Value 4: count=4, rawCenter=(-0.810, -0.000, -0.000), normal=(-1.000, -0.000, -0.000)
+Value 5: count=5, rawCenter=(0.000, 0.000, -0.810), normal=(0.000, 0.000, -1.000)
+Value 6: count=6, rawCenter=(-0.000, -0.810, 0.000), normal=(-0.000, -1.000, 0.000)
+Combined Bounds: center=(0.000, 0.000, 0.000), size=(2.662, 2.703, 2.179)
+Pip Geometry: Inset Cavity Depth = 0.025, Outer Rim Radius = 0.158, Cavity Bottom Radius = 0.134

@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://augmented-dice.web.app/sitemap.xml

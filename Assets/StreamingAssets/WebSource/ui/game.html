@@ -1,0 +1,649 @@
+<!-- App Shell: 16:9 컨테이너 (초기 숨김) -->
+<main id="app-container" class="hidden mode-select-state">
+
+  <!-- 프로필 섹션 (좌측, 메인 로비 시 표시) -->
+  <section id="profile-section">
+    <div class="profile-header">
+      <button id="btn-logout" class="icon-btn" title="로그아웃">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+          <polyline points="16 17 21 12 16 7"></polyline>
+          <line x1="21" y1="12" x2="9" y2="12"></line>
+        </svg>
+      </button>
+      <h2>My Profile</h2>
+    </div>
+    <div id="profile-content">
+      <!-- 1. 프로필 카드 -->
+      <div class="profile-card">
+        <button id="btn-open-profile" class="profile-open-btn" type="button" title="프로필 상세 열기" aria-label="프로필 상세 열기">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-circle-plus">
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M8 12h8"></path>
+            <path d="M12 8v8"></path>
+          </svg>
+        </button>
+        <div id="profile-avatar-container" class="profile-avatar-placeholder"
+          style="position: relative; overflow: hidden;">
+          <canvas id="profile-avatar-canvas" width="120" height="120"
+            style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></canvas>
+          <div class="avatar-edit-overlay hidden"
+            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; align-items: center; justify-content: center;">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+              <circle cx="12" cy="13" r="4"></circle>
+            </svg>
+          </div>
+        </div>
+        <div class="profile-user-info" style="width: 100%; text-align: center;">
+          <div id="profile-nickname" class="profile-name">Player</div>
+          <div id="profile-status-msg" class="profile-status-msg" style="word-break: keep-all;"></div>
+        </div>
+      </div>
+
+      <!-- 2. 게임 기록 컨테이너 -->
+      <div class="history-card">
+        <div class="history-empty-text">게임 기록이 없습니다.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 증강 (Augment) 섹션 (좌측 20%, 게임 중 표시) -->
+  <section id="augment-section">
+    <div class="sidebar-tabs hidden-in-normal">
+      <button class="tab-btn active" id="tab-augment-view">증강 보기</button>
+      <button class="tab-btn" id="tab-match-info-view-from-aug">매치 로그</button>
+    </div>
+    <div class="augment-section-header">
+      <h2><span class="aug-title-text">Augments</span><span id="aug-view-target-label" class="aug-target-label"></span>
+      </h2>
+      <button id="btn-toggle-opponent-augments" class="icon-btn-toggle" title="상대방 증강 보기 토글">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-user-round-search">
+          <circle cx="10" cy="8" r="5" />
+          <path d="M2 21a8 8 0 0 1 10.434-7.62" />
+          <circle cx="18" cy="18" r="3" />
+          <path d="m22 22-1.9-1.9" />
+        </svg>
+      </button>
+    </div>
+    <div id="augment-list">
+      <!-- 증강 카드 슬롯 3개 -->
+      <div class="augment-slot" id="aug-slot-0">
+        <div class="aug-empty-icon">
+          <svg viewBox="0 0 24 24" width="1em" height="1em">
+            <path d="M8 9 V7 a4 4 0 0 1 8 0 V9" fill="none" stroke="currentColor" stroke-width="2.5"
+              stroke-linecap="round" />
+            <rect x="5" y="9" width="14" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2.5" />
+            <circle cx="12" cy="16" r="1.5" fill="currentColor" />
+          </svg>
+        </div>
+        <div class="aug-empty-text">1턴에 첫 번째 증강을 선택할 수 있습니다.</div>
+      </div>
+      <div class="augment-slot" id="aug-slot-1">
+        <div class="aug-empty-icon">
+          <svg viewBox="0 0 24 24" width="1em" height="1em">
+            <path d="M8 9 V7 a4 4 0 0 1 8 0 V9" fill="none" stroke="currentColor" stroke-width="2.5"
+              stroke-linecap="round" />
+            <rect x="5" y="9" width="14" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2.5" />
+            <circle cx="12" cy="16" r="1.5" fill="currentColor" />
+          </svg>
+        </div>
+        <div class="aug-empty-text">6턴에 두 번째 증강을 선택할 수 있습니다.</div>
+      </div>
+      <div class="augment-slot" id="aug-slot-2">
+        <div class="aug-empty-icon">
+          <svg viewBox="0 0 24 24" width="1em" height="1em">
+            <path d="M8 9 V7 a4 4 0 0 1 8 0 V9" fill="none" stroke="currentColor" stroke-width="2.5"
+              stroke-linecap="round" />
+            <rect x="5" y="9" width="14" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="2.5" />
+            <circle cx="12" cy="16" r="1.5" fill="currentColor" />
+          </svg>
+        </div>
+        <div class="aug-empty-text">9턴에 세 번째 증강을 선택할 수 있습니다.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 매치 정보 (Match Info) 섹션 (게임 진행 중 프로필 섹션 대체) -->
+  <section id="match-info-section" class="hidden">
+    <div class="sidebar-tabs hidden-in-normal">
+      <button class="tab-btn" id="tab-augment-view-from-match">증강 보기</button>
+      <button class="tab-btn active" id="tab-match-info-view">매치 로그</button>
+    </div>
+
+    <!-- 매치 프로필 요약 (VS) -->
+    <h2 style="text-align: center; margin-bottom: 10px;">Match</h2>
+    <div class="match-profile vertical-match-layout">
+      <div class="match-player-box match-my-box" id="match-my-box">
+        <div class="match-avatar-container" style="position: relative; display: inline-block;">
+          <div class="match-avatar" id="match-my-avatar"></div>
+          <div class="disconnect-overlay hidden" id="match-my-disconnect">
+            <svg class="unplug-svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="overflow: visible;">
+              <path d="m19 5 3-3"></path>
+              <path d="m2 22 3-3"></path>
+              <path d="M6.3 20.3a2.4 2.4 0 0 0 3.4 0L12 18l-6-6-2.3 2.3a2.4 2.4 0 0 0 0 3.4Z"></path>
+              <path d="M7.5 13.5 10 11"></path>
+              <path d="M10.5 16.5 13 14"></path>
+              <path d="m17.7 3.7-2.3 2.3 6 6 2.3-2.3a2.4 2.4 0 0 0 0-3.4l-2.6-2.6a2.4 2.4 0 0 0-3.4 0Z"></path>
+            </svg>
+            <span class="disconnect-timer-text" id="match-my-disconnect-timer">60s</span>
+          </div>
+        </div>
+        <div class="match-nickname" id="match-my-name">Player</div>
+      </div>
+
+      <div class="match-vs-text">VS</div>
+
+      <div class="match-opponents-container" id="match-opponents-container">
+        <!-- JS 동적 생성 -->
+      </div>
+    </div>
+
+    <!-- 게임 로그 영역 -->
+    <h2 style="text-align: center; margin-bottom: 10px;">Play Log</h2>
+    <div class="match-log">
+      <div id="game-log-container">
+        <div class="log-empty-text">게임 로그가 없습니다.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 플레이어블 섹션 (중앙 45%) -->
+  <section id="playable-section">
+    <div class="controls-area">
+      <span id="game-status">상대 대기 중...</span>
+      <span id="turn-timer" class="turn-timer paused">
+        <svg class="hourglass-svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M5 22h14"></path>
+          <path d="M5 2h14"></path>
+          <path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"></path>
+          <path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"></path>
+        </svg>
+        <span id="turn-timer-text">--</span>
+      </span>
+      <span id="rolls-left">남은 굴림: 3</span>
+    </div>
+
+    <!-- STL 트레이와 로딩 플레이스홀더를 위한 주사위 게임 영역 -->
+    <div id="dice-board-area" class="dice-container">
+      <div class="tray-skeleton" aria-hidden="true"></div>
+      <!-- 3D 캔버스가 이 안에 절대 위치로 삽입됨 -->
+    </div>
+
+    <button id="btn-roll" class="game-btn" disabled>굴리기 (Roll)</button>
+  </section>
+
+  <!-- 게임 메뉴 섹션 (우측 40%, 모드 선택용) -->
+  <section id="play-menu-section">
+    <div class="play-menu-card">
+      <div class="play-menu-top-bar">
+        <button class="btn-play-submenu-icon" id="btn-menu-settings" title="환경설정">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path
+              d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.38a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+            <circle cx="12" cy="12" r="3" />
+          </svg>
+        </button>
+        <button class="btn-play-submenu-icon" id="btn-menu-achievements" title="도전과제">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+            <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+            <path d="M4 22h16" />
+            <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
+            <path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22" />
+            <path d="M18 2H6v7a6 6 0 0 0 12 0V2z" />
+          </svg>
+        </button>
+        <button class="btn-play-submenu-icon" id="btn-menu-compendium" title="증강 도감">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20" />
+            <path d="M8 7h6" />
+            <path d="M8 11h8" />
+          </svg>
+        </button>
+        <button class="btn-play-submenu-icon" id="btn-menu-help" title="도움말">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10" />
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
+            <path d="M12 17h.01" />
+          </svg>
+        </button>
+      </div>
+      <h2>Play Augmented Dice</h2>
+      <button class="btn-play-menu" id="btn-aug-online">증강 요트 다이스 / 온라인 플레이</button>
+      <button class="btn-play-menu" id="btn-aug-lobby">증강 요트 다이스 / 로비 플레이</button>
+      <button class="btn-play-menu" id="btn-aug-hotseat">증강 요트 다이스 / 핫시트 플레이</button>
+      <hr class="menu-divider" />
+      <button class="btn-play-menu" id="btn-norm-online">요트 다이스 / 온라인 플레이</button>
+      <button class="btn-play-menu" id="btn-norm-lobby">요트 다이스 / 로비 플레이</button>
+      <button class="btn-play-menu" id="btn-norm-hotseat">요트 다이스 / 핫시트 플레이</button>
+    </div>
+  </section>
+
+  <!-- 로비 선택 섹션 (우측 40%, 로비 생성/참가 선택) -->
+  <section id="matchmaking-section" aria-labelledby="matchmaking-title">
+    <button id="btn-matchmaking-back" class="icon-btn matchmaking-back" title="뒤로 가기" aria-label="뒤로 가기">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round">
+        <line x1="19" y1="12" x2="5" y2="12"></line>
+        <polyline points="12 19 5 12 12 5"></polyline>
+      </svg>
+    </button>
+    <div class="matchmaking-card">
+      <h2 id="matchmaking-title">온라인 플레이</h2>
+
+      <div id="matchmaking-settings">
+        <p class="matchmaking-label">상대 레이팅 검색 범위</p>
+        <div class="matchmaking-range-row">
+          <select id="matchmaking-lower" aria-label="레이팅 하한선"></select>
+          <span aria-hidden="true">-</span>
+          <strong id="matchmaking-my-rating">500</strong>
+          <span aria-hidden="true">-</span>
+          <select id="matchmaking-upper" aria-label="레이팅 상한선"></select>
+        </div>
+        <div class="matchmaking-profile">
+          <div id="matchmaking-my-avatar" class="matchmaking-avatar" aria-hidden="true"></div>
+          <strong id="matchmaking-my-nickname">Player</strong>
+        </div>
+        <p id="matchmaking-error" class="matchmaking-error" role="alert"></p>
+        <button id="btn-matchmaking-start" class="btn-play-menu">매치메이킹 시작</button>
+      </div>
+
+      <div id="matchmaking-waiting" class="hidden">
+        <div class="matchmaking-spinner" aria-hidden="true"></div>
+        <strong>상대를 찾는 중임</strong>
+        <span id="matchmaking-elapsed">00:00</span>
+        <p>검색 범위는 대기 시간에 따라 변경되지 않음</p>
+        <button id="btn-matchmaking-cancel-queue" class="btn-play-menu secondary">검색 취소</button>
+      </div>
+
+      <div id="matchmaking-confirm" class="hidden">
+        <div class="match-confirm-card">
+          <span class="match-confirm-label">MATCH</span>
+          <div id="matchmaking-opponent-avatar" class="matchmaking-avatar large" aria-hidden="true"></div>
+          <strong id="matchmaking-opponent-name">Opponent</strong>
+          <span>상대 레이팅 비공개</span>
+          <b id="matchmaking-countdown">3</b>
+        </div>
+        <p>곧 게임 세션으로 이동함</p>
+        <button id="btn-matchmaking-cancel-match" class="btn-play-menu secondary">매치 취소 — 두 사용자 모두 설정 화면으로 돌아감</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="lobby-select-section" style="position: relative;">
+    <button id="btn-lobby-select-back" class="icon-btn" title="뒤로가기" style="position: absolute; top: 40px; left: 40px;">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round">
+        <line x1="19" y1="12" x2="5" y2="12"></line>
+        <polyline points="12 19 5 12 12 5"></polyline>
+      </svg>
+    </button>
+    <div class="lobby-card">
+      <h2 id="lobby-select-mode-title">로비 플레이</h2>
+      <button id="btn-lobby-create" class="btn-play-menu" style="margin-bottom: 20px;">방 만들기 (Host)</button>
+
+      <hr class="menu-divider" style="margin: 10px 0 20px 0;" />
+
+      <h3 style="text-align: center; margin-bottom: 12px;">참여 코드로 참가</h3>
+      <div class="lobby-join-row" style="display: flex; gap: 14px; align-items: center; justify-content: center;">
+        <div class="pin-code-container" id="pin-code-container">
+          <input type="text" class="pin-digit-input" maxlength="1" data-index="0" autocomplete="off" />
+          <input type="text" class="pin-digit-input" maxlength="1" data-index="1" autocomplete="off" />
+          <input type="text" class="pin-digit-input" maxlength="1" data-index="2" autocomplete="off" />
+          <input type="text" class="pin-digit-input" maxlength="1" data-index="3" autocomplete="off" />
+          <input type="text" class="pin-digit-input" maxlength="1" data-index="4" autocomplete="off" />
+          <input type="text" class="pin-digit-input" maxlength="1" data-index="5" autocomplete="off" />
+        </div>
+        <button id="btn-lobby-join" class="btn-play-menu btn-pin-submit"
+          style="padding: 0 20px; height: 44px; white-space: nowrap; margin-left: 4px;">참가</button>
+        <p id="lobby-join-error" class="lobby-join-error" role="alert"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 로비 섹션 (우측 40%, 로비 플레이 시 표시) -->
+  <section id="lobby-section" style="position: relative;">
+    <button id="btn-lobby-back" class="icon-btn" title="뒤로가기" style="position: absolute; top: 40px; left: 40px;">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round">
+        <line x1="19" y1="12" x2="5" y2="12"></line>
+        <polyline points="12 19 5 12 12 5"></polyline>
+      </svg>
+    </button>
+    <div class="lobby-card">
+      <h2 id="lobby-mode-text">증강 요트 다이스</h2>
+      <div class="lobby-code-box">
+        <span>참여 코드: </span>
+        <strong id="lobby-code-display">ABC123</strong>
+        <button id="btn-copy-lobby-code" class="icon-btn-copy" title="참여 코드 복사">
+          <svg class="copy-icon-svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+          </svg>
+        </button>
+      </div>
+
+      <div class="lobby-players">
+        <!-- 최대 2인 표시 -->
+        <div class="lobby-player-slot host">
+          <div class="player-avatar"></div>
+          <div class="player-name">Player 1</div>
+          <div class="player-status">✓</div>
+        </div>
+        <div class="lobby-player-slot empty">
+          <div class="player-avatar"></div>
+          <div class="player-name">Waiting...</div>
+          <div class="player-status"></div>
+        </div>
+      </div>
+
+      <button id="btn-lobby-start" class="game-btn">게임 시작</button>
+    </div>
+  </section>
+
+  <!-- 족보(점수판) 섹션 (우측 40%) -->
+  <section id="scorecard-section">
+    <table id="score-table" class="game-table">
+      <thead>
+        <!-- Row: Categories and Names -->
+        <tr>
+          <th class="col-cat highlight-dark">Categories</th>
+          <th id="p1-name" class="col-player">
+            <div class="name-text">P1</div>
+          </th>
+          <th id="p2-name" class="col-player">
+            <div class="name-text">P2</div>
+          </th>
+          <th class="col-cat highlight-dark">Categories</th>
+        </tr>
+      </thead>
+      <tbody id="score-tbody">
+        <!-- 자바스크립트에서 렌더링 -->
+      </tbody>
+    </table>
+  </section>
+
+</main>
+
+<!-- 진행 중인 게임 재접속 모달 -->
+<div id="reconnect-modal" class="modal-overlay hidden"
+  style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.7); display: flex; align-items: center; justify-content: center; z-index: 9999;">
+  <div class="modal-card"
+    style="background: #fff; padding: 24px; border-radius: 12px; width: 340px; text-align: center; box-shadow: var(--shadow-lg);">
+    <h2 style="margin-bottom: 12px; font-size: 1.2rem; color: #111;">진행 중인 게임 감지</h2>
+    <p id="reconnect-modal-text" style="margin-bottom: 20px; font-size: 0.95rem; color: #555; line-height: 1.4;">이전에 진행
+      중이던 로비 게임 세션이 존재합니다.<br>재접속하시겠습니까?</p>
+    <div class="modal-buttons" style="display: flex; gap: 10px; justify-content: center;">
+      <button id="btn-reconnect-join" class="game-btn primary-btn" style="flex: 1;">재접속</button>
+      <button id="btn-reconnect-cancel" class="game-btn secondary-btn"
+        style="flex: 1; background: #e0e0e0; color: #333;">포기하기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 도전과제 모달 -->
+<div id="modal-achievements" class="game-modal-overlay hidden">
+  <div class="game-modal-content">
+    <div class="game-modal-header">
+      <h2>도전과제</h2>
+      <button class="game-modal-close" data-target="modal-achievements">&times;</button>
+    </div>
+    <div class="achievement-summary" aria-label="전체 도전과제 진행도">
+      <strong id="modal-achievements-summary-text">0/0 완료함</strong>
+      <div class="achievement-progress-bar" role="progressbar" aria-valuemin="0" aria-valuenow="0" aria-valuemax="0">
+        <span id="modal-achievements-summary-fill"></span>
+      </div>
+    </div>
+    <div class="game-modal-body">
+      <div id="modal-achievements-list" class="achievement-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 프로필 상세 모달 -->
+<div id="modal-profile" class="game-modal-overlay hidden">
+  <div class="game-modal-content profile-modal-content">
+    <div class="game-modal-header">
+      <h2 id="profile-modal-title">프로필</h2>
+      <button class="game-modal-close" data-target="modal-profile" aria-label="프로필 닫기">&times;</button>
+    </div>
+    <div class="game-modal-body profile-modal-body">
+      <div class="profile-modal-actions">
+        <button id="btn-profile-edit" class="compendium-back-btn hidden" type="button">프로필 편집</button>
+        <button id="btn-my-profile" class="compendium-back-btn hidden" type="button">내 프로필</button>
+        <div class="profile-search-wrap">
+          <div class="profile-search-bar" role="search">
+            <svg aria-hidden="true" class="lucide lucide-search profile-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="m21 21-4.3-4.3"></path>
+            </svg>
+            <input id="profile-search-input" type="search" maxlength="30" autocomplete="off" aria-label="닉네임 검색" placeholder="닉네임 검색">
+            <button id="btn-profile-search-submit" class="profile-search-submit" type="button" aria-label="검색">검색</button>
+          </div>
+          <section id="profile-search-results-section" class="profile-search-results-section hidden" aria-labelledby="profile-search-results-title">
+            <h3 id="profile-search-results-title">프로필 검색 결과</h3>
+            <div id="profile-search-status" class="profile-search-status" role="status" aria-live="polite"></div>
+            <div id="profile-search-results" class="profile-search-results"></div>
+          </section>
+        </div>
+      </div>
+      <div class="profile-modal-grid">
+        <section class="profile-modal-card profile-modal-identity" aria-labelledby="profile-modal-name">
+          <div id="profile-modal-avatar" class="profile-avatar-placeholder profile-modal-avatar" tabindex="-1">
+            <div class="avatar-edit-overlay hidden">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                <circle cx="12" cy="13" r="4"></circle>
+              </svg>
+            </div>
+          </div>
+          <h3 id="profile-modal-name">Player</h3>
+          <p id="profile-modal-status" class="profile-status-msg"></p>
+          <input id="profile-modal-status-input" class="game-input hidden" type="text" maxlength="30"
+            aria-label="프로필 소개말" />
+        </section>
+
+        <section class="profile-modal-card profile-modal-empty-stat" aria-labelledby="profile-modal-stat-title">
+          <h3 id="profile-modal-stat-title">통계</h3>
+          <div></div>
+        </section>
+
+        <section class="profile-modal-card profile-mode-stats" aria-labelledby="profile-mode-stat-title">
+          <h3 id="profile-mode-stat-title">게임 모드 통계</h3>
+          <div class="profile-mode-row">
+            <div class="profile-rating-panel">
+              <div class="profile-rating-summary">
+                <div id="profile-mode-icon-augmented" class="profile-mode-icon"></div>
+                <div class="profile-rating-heading">
+                  <span>증강 요트 다이스</span>
+                  <strong id="profile-rating-augmented">500</strong>
+                  <small>전적 없음</small>
+                </div>
+                <div class="profile-rating-chart" data-rating-mode="augmented" tabindex="0"
+                  aria-label="증강 요트 다이스 최근 90일 레이팅 그래프">
+                  <svg class="profile-rating-graph" viewBox="0 0 240 64" preserveAspectRatio="none" role="img"
+                    aria-label="증강 요트 다이스 레이팅 500점, 전적 없음">
+                    <path class="profile-rating-area" d="M0 32H240V64H0Z"></path>
+                    <path class="profile-rating-line" d="M1.5 32H238.5"></path>
+                  </svg>
+                  <span class="profile-rating-point-halo" aria-hidden="true" hidden></span>
+                  <span class="profile-rating-point" aria-hidden="true" hidden></span>
+                  <output class="profile-rating-tooltip hidden"></output>
+                </div>
+              </div>
+            </div>
+            <div class="profile-top-augments">
+              <strong>Top 3 증강</strong>
+              <ol id="profile-top-augments">
+                <li class="is-empty">기록 없음</li>
+              </ol>
+            </div>
+          </div>
+          <hr />
+          <div class="profile-mode-row profile-mode-row-normal">
+            <div class="profile-rating-panel">
+              <div class="profile-rating-summary">
+                <div id="profile-mode-icon-normal" class="profile-mode-icon"></div>
+                <div class="profile-rating-heading">
+                  <span>일반 요트 다이스</span>
+                  <strong id="profile-rating-normal">500</strong>
+                  <small>전적 없음</small>
+                </div>
+                <div class="profile-rating-chart" data-rating-mode="normal" tabindex="0"
+                  aria-label="일반 요트 다이스 최근 90일 레이팅 그래프">
+                  <svg class="profile-rating-graph" viewBox="0 0 240 64" preserveAspectRatio="none" role="img"
+                    aria-label="일반 요트 다이스 레이팅 500점, 전적 없음">
+                    <path class="profile-rating-area" d="M0 32H240V64H0Z"></path>
+                    <path class="profile-rating-line" d="M1.5 32H238.5"></path>
+                  </svg>
+                  <span class="profile-rating-point-halo" aria-hidden="true" hidden></span>
+                  <span class="profile-rating-point" aria-hidden="true" hidden></span>
+                  <output class="profile-rating-tooltip hidden"></output>
+                </div>
+              </div>
+            </div>
+            <dl class="profile-normal-stats">
+              <div>
+                <dt>최고 득점</dt>
+                <dd><strong id="profile-highest-score">0</strong><small id="profile-highest-score-date">-</small></dd>
+              </div>
+              <div>
+                <dt>보너스 달성</dt>
+                <dd id="profile-upper-bonus-count">0회</dd>
+              </div>
+              <div>
+                <dt>요트 기입</dt>
+                <dd id="profile-yacht-count">0회</dd>
+              </div>
+            </dl>
+          </div>
+        </section>
+
+        <section id="profile-modal-history" class="history-card profile-modal-history" aria-label="최근 매치"></section>
+        <section id="profile-search-results-screen" class="profile-modal-card profile-search-results-screen hidden" aria-labelledby="profile-search-results-screen-title">
+          <h3 id="profile-search-results-screen-title">프로필 검색 결과</h3>
+          <div id="profile-search-screen-status" class="profile-search-status" role="status" aria-live="polite"></div>
+          <div id="profile-search-screen-results" class="profile-search-results"></div>
+        </section>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="profile-preview-card" class="profile-preview-card hidden" role="tooltip">
+  <div id="profile-preview-avatar" class="profile-avatar-placeholder"></div>
+  <div>
+    <strong id="profile-preview-name">Player</strong>
+    <span id="profile-preview-status"></span>
+  </div>
+</div>
+
+<!-- 증강 도감 모달 -->
+<div id="modal-compendium" class="game-modal-overlay hidden">
+  <div id="modal-compendium-card" class="game-modal-content">
+    <div id="modal-compendium-header" class="game-modal-header">
+      <h2 id="modal-compendium-title">증강 도감</h2>
+      <button id="modal-compendium-close" class="game-modal-close" data-target="modal-compendium">&times;</button>
+    </div>
+    <div id="modal-compendium-body" class="game-modal-body">
+      <div id="modal-compendium-index">
+        <div id="modal-compendium-category-tabs" class="modal-compendium-category-tabs">
+          <button class="modal-compendium-tab-btn active" data-category="all">전체</button>
+          <button class="modal-compendium-tab-btn" data-category="변형">변형</button>
+          <button class="modal-compendium-tab-btn" data-category="퀘스트">퀘스트</button>
+          <button class="modal-compendium-tab-btn" data-category="강화">강화</button>
+        </div>
+        <hr id="modal-compendium-divider" class="modal-compendium-divider" />
+        <div id="modal-compendium-list" class="modal-compendium-list">
+          <!-- 자바스크립트에서 렌더링 -->
+        </div>
+      </div>
+      <div id="modal-compendium-detail" class="compendium-detail-view hidden" aria-live="polite">
+        <button id="btn-compendium-back" class="compendium-back-btn" type="button">← 도감으로 돌아가기</button>
+        <div class="compendium-detail">
+          <article id="compendium-detail-augment" class="modal-compendium-item compendium-detail-augment"></article>
+          <section class="compendium-stat-card" aria-labelledby="compendium-stat-title">
+            <h3 id="compendium-stat-title">통계</h3>
+            <dl id="compendium-stat-list"></dl>
+          </section>
+          <section class="compendium-achievement-card" aria-labelledby="compendium-achievement-title">
+            <h3 id="compendium-achievement-title">도전과제</h3>
+            <div id="compendium-achievement-list" class="achievement-list"></div>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 도움말 가이드 선택 모달 -->
+<div id="modal-help" class="game-modal-overlay hidden">
+  <div class="game-modal-content help-select-modal">
+    <div class="game-modal-header">
+      <h2>게임 도움말</h2>
+      <button class="game-modal-close" data-target="modal-help">&times;</button>
+    </div>
+    <div class="game-modal-body">
+      <div class="help-guide-cards">
+        <button id="btn-help-norm-guide" class="help-guide-card">
+          <div class="help-guide-card-icon" id="help-icon-norm"></div>
+          <span class="help-guide-card-text">요트 다이스 가이드</span>
+        </button>
+        <button id="btn-help-aug-guide" class="help-guide-card">
+          <div class="help-guide-card-icon" id="help-icon-aug"></div>
+          <span class="help-guide-card-text">증강 요트 다이스 가이드</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 90% 규격 상세 도움말 모달 -->
+<div id="modal-help-detail" class="game-modal-overlay hidden">
+  <div class="game-modal-content help-detail-modal">
+    <div class="game-modal-header">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <button id="btn-help-detail-back" class="icon-btn" title="가이드 선택으로 돌아가기" style="transform: translateY(2px);">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"></line>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+        </button>
+        <h2 id="help-detail-title">게임 가이드</h2>
+      </div>
+      <button class="game-modal-close" id="btn-help-detail-close">&times;</button>
+    </div>
+    <div class="game-modal-body help-detail-body" id="help-detail-body">
+      <div class="guide-placeholder-container">
+        <p id="help-detail-text" class="modal-placeholder-text">가이드 내용이 여기에 추가될 예정입니다.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 환경 설정 모달 -->
+<div id="modal-settings" class="game-modal-overlay hidden">
+  <div class="game-modal-content settings-modal">
+    <div class="game-modal-header">
+      <h2>환경 설정</h2>
+      <button class="game-modal-close" data-target="modal-settings">&times;</button>
+    </div>
+    <div class="game-modal-body">
+      <p class="settings-placeholder-text">추후 업데이트 예정입니다.</p>
+    </div>
+  </div>
+</div>

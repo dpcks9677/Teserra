@@ -1,0 +1,162 @@
+[
+  {
+    "file": "dice_presets_normal_1.json",
+    "label": "일반 주사위 1개",
+    "diceCount": 1,
+    "octaCount": 0,
+    "mode": "normal",
+    "clipCount": 20
+  },
+  {
+    "file": "dice_presets_normal_2.json",
+    "label": "일반 주사위 2개",
+    "diceCount": 2,
+    "octaCount": 0,
+    "mode": "normal",
+    "clipCount": 20
+  },
+  {
+    "file": "dice_presets_normal_3.json",
+    "label": "일반 주사위 3개",
+    "diceCount": 3,
+    "octaCount": 0,
+    "mode": "normal",
+    "clipCount": 20
+  },
+  {
+    "file": "dice_presets_normal_4.json",
+    "label": "일반 주사위 4개",
+    "diceCount": 4,
+    "octaCount": 0,
+    "mode": "normal",
+    "clipCount": 20
+  },
+  {
+    "file": "dice_presets_normal_5.json",
+    "label": "일반 주사위 5개",
+    "diceCount": 5,
+    "octaCount": 0,
+    "mode": "normal",
+    "clipCount": 20
+  },
+  {
+    "file": "dice_presets_normal_6.json",
+    "label": "일반 주사위 6개 (확장)",
+    "diceCount": 6,
+    "octaCount": 0,
+    "mode": "normal",
+    "clipCount": 20
+  },
+  {
+    "file": "dice_presets_flip_1.json",
+    "label": "판 뒤집기 1개",
+    "diceCount": 1,
+    "octaCount": 0,
+    "mode": "flip",
+    "clipCount": 20
+  },
+  {
+    "file": "dice_presets_flip_2.json",
+    "label": "판 뒤집기 2개",
+    "diceCount": 2,
+    "octaCount": 0,
+    "mode": "flip",
+    "clipCount": 20
+  },
+  {
+    "file": "dice_presets_flip_3.json",
+    "label": "판 뒤집기 3개",
+    "diceCount": 3,
+    "octaCount": 0,
+    "mode": "flip",
+    "clipCount": 20
+  },
+  {
+    "file": "dice_presets_flip_4.json",
+    "label": "판 뒤집기 4개",
+    "diceCount": 4,
+    "octaCount": 0,
+    "mode": "flip",
+    "clipCount": 20
+  },
+  {
+    "file": "dice_presets_flip_5.json",
+    "label": "판 뒤집기 5개",
+    "diceCount": 5,
+    "octaCount": 0,
+    "mode": "flip",
+    "clipCount": 20
+  },
+  {
+    "file": "dice_presets_mixed_0normal_1octa.json",
+    "label": "8면체 1개",
+    "diceCount": 1,
+    "octaCount": 1,
+    "mode": "octahedron",
+    "clipCount": 20
+  },
+  {
+    "file": "dice_presets_mixed_0normal_2octa.json",
+    "label": "8면체 2개",
+    "diceCount": 2,
+    "octaCount": 2,
+    "mode": "octahedron",
+    "clipCount": 20
+  },
+  {
+    "file": "dice_presets_mixed_1normal_1octa.json",
+    "label": "일반 1개 + 8면체 1개",
+    "diceCount": 2,
+    "octaCount": 1,
+    "mode": "octahedron",
+    "clipCount": 20
+  },
+  {
+    "file": "dice_presets_mixed_1normal_2octa.json",
+    "label": "일반 1개 + 8면체 2개",
+    "diceCount": 3,
+    "octaCount": 2,
+    "mode": "octahedron",
+    "clipCount": 20
+  },
+  {
+    "file": "dice_presets_mixed_2normal_1octa.json",
+    "label": "일반 2개 + 8면체 1개",
+    "diceCount": 3,
+    "octaCount": 1,
+    "mode": "octahedron",
+    "clipCount": 20
+  },
+  {
+    "file": "dice_presets_mixed_2normal_2octa.json",
+    "label": "일반 2개 + 8면체 2개",
+    "diceCount": 4,
+    "octaCount": 2,
+    "mode": "octahedron",
+    "clipCount": 20
+  },
+  {
+    "file": "dice_presets_mixed_3normal_1octa.json",
+    "label": "일반 3개 + 8면체 1개",
+    "diceCount": 4,
+    "octaCount": 1,
+    "mode": "octahedron",
+    "clipCount": 20
+  },
+  {
+    "file": "dice_presets_mixed_3normal_2octa.json",
+    "label": "일반 3개 + 8면체 2개",
+    "diceCount": 5,
+    "octaCount": 2,
+    "mode": "octahedron",
+    "clipCount": 20
+  },
+  {
+    "file": "dice_presets_mixed_4normal_2octa.json",
+    "label": "일반 4개 + 8면체 2개 (6개 확장)",
+    "diceCount": 6,
+    "octaCount": 2,
+    "mode": "octahedron",
+    "clipCount": 20
+  }
+]

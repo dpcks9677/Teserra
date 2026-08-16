@@ -1,0 +1,8 @@
+<svg viewBox="0 0 48 48" width="1.2em" height="1.2em" style="vertical-align: text-bottom; margin-right: 6px;">
+    <g transform="scale(2)">
+      
+    <rect x="2" y="2" width="20" height="20" rx="4" fill="none" stroke="#222" stroke-width="2"/>
+    <circle cx="7" cy="7" r="1.8" fill="#222"/><circle cx="17" cy="7" r="1.8" fill="#222"/><circle cx="12" cy="12" r="1.8" fill="#222"/><circle cx="7" cy="17" r="1.8" fill="#222"/><circle cx="17" cy="17" r="1.8" fill="#222"/>
+  
+    </g>
+  </svg>

@@ -1,0 +1,484 @@
+[
+  {
+    "id": 1,
+    "name": "럭키 세븐",
+    "en-name": "Lucky Sevens",
+    "target": "에이스 (Aces)",
+    "mark": "L. Sevens",
+    "description": "에이스 족보를 <strong><u>럭키 세븐</u></strong> 족보로 변경합니다.<br><br>주사위 눈금 총합이 7, 17, 27 중 하나일 때 기입이 가능하며, 족보의 조건을 만족하면 고정 15점을 기입할 수 있습니다.",
+    "augmentId": "lucky-sevens"
+  },
+  {
+    "id": 2,
+    "name": "퍼펙트 스퀘어",
+    "en-name": "Perfect Squares",
+    "target": "에이스 (Aces)",
+    "mark": "P. Squares",
+    "description": "에이스 족보를 <strong><u>퍼펙트 스퀘어</u></strong> 족보로 변경합니다.<br><br>주사위 눈금 총합이 9, 16, 25 중 하나일 때 기입이 가능하며, 족보의 조건을 만족하면 고정 12점을 기입할 수 있습니다.",
+    "augmentId": "perfect-squares"
+  },
+  {
+    "id": 3,
+    "name": "안티-에이스 듀스",
+    "en-name": "Anti-Ace Deuces",
+    "target": "듀스 (Deuces)",
+    "augmentId": "anti-ace-deuces",
+    "description": "듀스 족보를 <strong><u>안티-에이스 듀스</u></strong> 족보로 변경합니다.<br><br>'2'가 3개 이상이면서 '1'이 단 하나도 없을 때 기입이 가능하며, 족보의 조건을 만족하면 고정 8점을 기입할 수 있습니다."
+  },
+  {
+    "id": 4,
+    "name": "안티-포 쓰리스",
+    "en-name": "Anti-Four Threes",
+    "target": "트리플 (Threes)",
+    "augmentId": "anti-four-threes",
+    "description": "쓰리스 족보를 <strong><u>안티-포 트리플</u></strong> 족보로 변경합니다.<br><br>'3'이 3개 이상이면서 '4'가 단 하나도 없을 때 기입이 가능하며, 족보의 조건을 만족하면 고정 12점을 기입할 수 있습니다."
+  },
+  {
+    "id": 5,
+    "name": "프라임 넘버즈",
+    "en-name": "Prime Numbers",
+    "target": "트리플 (Threes)",
+    "mark": "P. Numbers",
+    "description": "쓰리스 족보를 <strong><u>프라임 넘버즈</u></strong> 족보로 변경합니다.<br><br>주사위 5개가 모두 소수(2, 3, 5, 7)일 때 기입이 가능하며, 족보의 조건을 만족하면 고정 12점을 기입할 수 있습니다.",
+    "augmentId": "prime-numbers"
+  },
+  {
+    "id": 6,
+    "name": "안티-식스 포스",
+    "en-name": "Anti-Six Fours",
+    "target": "쿼드 (Fours)",
+    "augmentId": "anti-six-fours",
+    "description": "포스 족보를 <strong><u>안티-식스 쿼드</u></strong> 족보로 변경합니다.<br><br>'4'가 3개 이상이면서 '6'이 단 하나도 없을 때 기입이 가능하며, 족보의 조건을 만족하면 고정 16점을 기입할 수 있습니다."
+  },
+  {
+    "id": 7,
+    "name": "안티-식스 파이브스",
+    "en-name": "Anti-Six Fives",
+    "target": "펜타 (Fives)",
+    "augmentId": "anti-six-fives",
+    "description": "파이브스 족보를 <strong><u>안티-식스 펜타</u></strong> 족보로 변경합니다.<br><br>'5'가 3개 이상이면서 '6'이 단 하나도 없을 때 기입이 가능하며, 족보의 조건을 만족하면 고정 20점을 기입할 수 있습니다."
+  },
+  {
+    "id": 8,
+    "name": "안티-파이브 식스스",
+    "en-name": "Anti-Five Sixes",
+    "target": "헥사 (Sixes)",
+    "augmentId": "anti-five-sixes",
+    "description": "식스스 족보를 <strong><u>안티-파이브 헥사</u></strong> 족보로 변경합니다.<br><br>'6'이 3개 이상이면서 '5'가 단 하나도 없을 때 기입이 가능하며, 족보의 조건을 만족하면 고정 24점을 기입할 수 있습니다."
+  },
+  {
+    "id": 9,
+    "name": "갬블러",
+    "en-name": "Gambler",
+    "target": "초이스 (Choice)",
+    "mark": "Gambler",
+    "description": "초이스 족보를 <strong><u>갬블러</u></strong> 족보로 변경합니다.<br><br>주사위 눈금 총합이 24 이상일 때 기입이 가능하며, 족보의 조건을 만족하면 <strong><u>주사위 눈금 총합 + 7</u></strong> 점을 기입할 수 있습니다.",
+    "augmentId": "gambler"
+  },
+  {
+    "id": 10,
+    "name": "쓰리 오브 어 카인드",
+    "en-name": "Three of a Kind",
+    "target": "포카인드 (Four of a Kind)",
+    "mark": "3 of a Kind",
+    "description": "포카인드 족보를 <strong><u>쓰리 오브 어 카인드</u></strong> 족보로 변경합니다.<br><br>같은 눈금이 3개 이상일 때 기입이 가능하며, 족보의 조건을 만족하면 <strong><u>주사위 눈금 총합</u></strong> 점을 기입할 수 있습니다.",
+    "augmentId": "three-of-a-kind"
+  },
+  {
+    "id": 11,
+    "name": "포 바이 포",
+    "en-name": "Four by Four",
+    "target": "포카인드 (Four of a Kind)",
+    "mark": "Four x Four",
+    "description": "포카인드 족보를 <strong><u>포 바이 포</u></strong> 족보로 변경합니다.<br><br>'4'를 4개 이상 모아 포카인드를 달성하면 <strong><u>주사위 눈금 총합 + 10</u></strong> 점을 기입할 수 있습니다.<br><br>(다른 숫자로 달성 시 총합 - 4점 적용)",
+    "augmentId": "four-by-four"
+  },
+  {
+    "id": 12,
+    "name": "타이니 하우스",
+    "en-name": "Tiny House",
+    "target": "풀하우스 (Full House)",
+    "mark": "Tiny House",
+    "description": "풀하우스 족보를 <strong><u>타이니 하우스</u></strong> 족보로 변경합니다.<br><br>'5'와 '6'을 제외한 눈금만으로 족보의 조건을 만족하면 고정 28점을 기입할 수 있습니다.",
+    "augmentId": "tiny-house"
+  },
+  {
+    "id": 13,
+    "name": "투 페어",
+    "en-name": "Two Pair",
+    "target": "풀하우스 (Full House)",
+    "mark": "Two Pair",
+    "description": "풀하우스 족보를 <strong><u>투 페어</u></strong> 족보로 변경합니다.<br><br>서로 다른 2쌍의 숫자가 각각 2개 이상일 때 기입이 가능하며, 족보의 조건을 만족하면 고정 15점을 기입할 수 있습니다.",
+    "augmentId": "two-pair"
+  },
+  {
+    "id": 14,
+    "name": "머리와 몸통",
+    "en-name": "Head & Tail",
+    "target": "풀하우스 (Full House)",
+    "mark": "Head & Run",
+    "description": "풀하우스 족보를 <strong><u>머리와 몸통</u></strong> 족보로 변경합니다.<br><br>연속된 눈금 3개와, 같은 눈금 2개를 구성할 때 기입이 가능하며, 족보의 조건을 만족하면 <strong><u>주사위 눈금 총합 + 10점</u></strong>을 기입할 수 있습니다",
+    "augmentId": "head-and-tail"
+  },
+  {
+    "id": 15,
+    "name": "에번스",
+    "en-name": "Evens",
+    "target": "스몰 스트레이트 (Small Straight)",
+    "mark": "Evens",
+    "description": "스몰 스트레이트 족보를 <strong><u>에번스</u></strong> 족보로 변경합니다.<br><br>주사위 5개가 모두 짝수(2, 4, 6)일 때 기입이 가능하며, 족보의 조건을 만족하면 고정 20점을 기입할 수 있습니다.",
+    "augmentId": "evens"
+  },
+  {
+    "id": 16,
+    "name": "오즈",
+    "en-name": "Odds",
+    "target": "스몰 스트레이트 (Small Straight)",
+    "mark": "Odds",
+    "description": "스몰 스트레이트 족보를 <strong><u>오즈</u></strong> 족보로 변경합니다.<br><br>주사위 5개가 모두 홀수(1, 3, 5)일 때 기입이 가능하며, 족보의 조건을 만족하면 고정 20점을 얻을 수 있습니다.",
+    "augmentId": "odds"
+  },
+  {
+    "id": 17,
+    "name": "더블 라지 스트레이트",
+    "en-name": "Double Large Straight",
+    "target": "스몰 스트레이트 (Small Straight)",
+    "mark": "L. Straight",
+    "description": "스몰 스트레이트 족보를 라지 스트레이트 족보로 변경하고, 상단 구역 보너스 달성 조건을 60점으로 낮춥니다.",
+    "augmentId": "double-large-straight"
+  },
+  {
+    "id": 18,
+    "name": "프라임 컬렉션",
+    "en-name": "Prime Collection",
+    "target": "라지 스트레이트 (Large Straight)",
+    "mark": "P. Collection",
+    "description": "라지 스트레이트 족보를 <strong><u>프라임 컬렉션</u></strong> 족보로 변경합니다.<br><br>모든 눈금이 소수(2, 3, 5)이고 종류별로 최소 1개 이상 포함될 때 기입이 가능하며, 족보의 조건을 만족하면 고정 35점을 얻을 수 있습니다.",
+    "augmentId": "prime-collection"
+  },
+  {
+    "id": 19,
+    "name": "땅콩주택",
+    "en-name": "Duplex House",
+    "target": "라지 스트레이트 (Large Straight)",
+    "mark": "D. House",
+    "description": "라지 스트레이트 족보를 <strong><u>땅콩주택</u></strong> 족보로 변경합니다.<br><br>정확히 1차이 나는 두 개의 숫자로만 이루어진 풀하우스를 달성할 때 기입이 가능하며, 족보의 조건을 만족하면 고정 35점을 얻을 수 있습니다.",
+    "augmentId": "duplex-house"
+  },
+  {
+    "id": 20,
+    "name": "마운틴",
+    "en-name": "Mountain",
+    "target": "라지 스트레이트 (Large Straight)",
+    "mark": "Mountain",
+    "description": "라지 스트레이트 족보를 <strong><u>마운틴</u></strong> 족보로 변경합니다.<br><br><strong><u>2, 3, 4, 5, 6</u></strong>을 달성할 때 기입이 가능하며, 족보의 조건을 만족하면 고정 40점을 얻을 수 있습니다.",
+    "augmentId": "mountain"
+  },
+  {
+    "id": 21,
+    "name": "하이 다이스",
+    "en-name": "High Dice",
+    "target": "라지 스트레이트 (Large Straight)",
+    "mark": "High Dice",
+    "description": "라지 스트레이트 족보를 <strong><u>하이 다이스</u></strong> 족보로 변경합니다.<br><br>모든 주사위가 4, 5, 6, 7이고 총합이 26 이상일 때 기입이 가능하며, 족보의 조건을 만족하면 고정 35점을 얻을 수 있습니다.",
+    "augmentId": "high-dice"
+  },
+  {
+    "id": 22,
+    "name": "두 번째 초이스",
+    "en-name": "Whatever it takes...",
+    "target": "요트 (Yacht)",
+    "mark": "2nd Choice",
+    "description": "요트 족보를 <strong><u>두 번째 초이스</u></strong> 족보로 변경합니다.<br><br>조건 없이 언제든 기입이 가능하며, 주사위 눈금 총합의 절반에 해당하는 점수를 얻을 수 있습니다.",
+    "augmentId": "2nd-choice"
+  },
+  {
+    "id": 23,
+    "name": "피보나치 넘버즈",
+    "en-name": "Fibonacci Numbers",
+    "target": "요트 (Yacht)",
+    "mark": "Fib. Numbers",
+    "description": "요트 족보를 <strong><u>피보나치 넘버즈</u></strong> 족보로 변경합니다.<br><br><strong><u>1, 1, 2, 3, 5</u></strong>를 구성할 때 기입이 가능하며, 족보의 조건을 만족하면 고정 25점을 얻을 수 있습니다.",
+    "augmentId": "fibonacci-numbers"
+  },
+  {
+    "id": 24,
+    "name": "리버스 초이스",
+    "en-name": "Reverse Choice",
+    "target": "요트 (Yacht)",
+    "mark": "R. Choice",
+    "description": "요트 족보를 <strong><u>리버스 초이스</u></strong> 족보로 변경합니다.<br><br>조건 없이 언제든 기입이 가능하며, 30점에서 주사위 눈금 총합을 뺀 점수를 얻을 수 있습니다.",
+    "augmentId": "reverse-choice"
+  },
+  {
+    "id": 25,
+    "name": "요트 뱅크",
+    "en-name": "Yacht Bank",
+    "target": "요트 (Yacht)",
+    "mark": "Bank",
+    "description": "요트 족보를 <strong><u>요트 뱅크</u></strong> 족보로 변경합니다.<br><br>증강 획득 후 3턴 동안, 턴 종료 시 킵 존에 남아있는 주사위 눈금의 총합만큼 뱅크 점수가 누적됩니다. (최대 15점)<br><br>단, 킵 존의 주사위는 해당 턴 족보 점수 계산에서 제외됩니다.<br><br>4번째 턴 시작 시, 뱅크에 누적된 점수가 요트 뱅크 족보에 자동 기입됩니다.",
+    "types": [
+      "Modification",
+      "Quest"
+    ],
+    "augmentId": "yacht-bank"
+  },
+  {
+    "id": 26,
+    "name": "블랙잭 21",
+    "en-name": "Blackjack 21",
+    "target": "요트 (Yacht)",
+    "mark": "Blackjack",
+    "description": "요트 족보를 <strong><u>블랙잭 21</u></strong> 족보로 변경합니다.<br><br>주사위 눈금 총합이 정확히 21일 때 기입이 가능하며, 족보의 조건을 만족하면 고정 21점을 얻을 수 있습니다.",
+    "augmentId": "blackjack-21"
+  },
+  {
+    "id": 27,
+    "name": "재빠른 스트레이트",
+    "en-name": "Fast Straight",
+    "target": "q1",
+    "type": "Quest / Phase 1",
+    "reward": "보너스 +15점 획득",
+    "description": "<strong><u>퀘스트</strong></u>: 8턴 이내에 스몰 스트레이트와 라지 스트레이트를 모두 족보에 기입합니다.<br><br>퀘스트 완료 시, 보너스 15점을 획득합니다.",
+    "augmentId": "fast-straight"
+  },
+  {
+    "id": 28,
+    "name": "낭비할 시간 없다",
+    "en-name": "No time to waste",
+    "target": "q2",
+    "type": "Quest",
+    "reward": "달성 즉시 보너스 +15점 획득",
+    "description": "<strong><u>퀘스트</strong></u>: 연속된 다음 3턴 동안 리롤 없이 바로 족보를 기입합니다.<br><br>퀘스트 완료 시, 추가로 15점을 획득합니다.",
+    "augmentId": "no-time-to-waste"
+  },
+  {
+    "id": 29,
+    "name": "차근차근",
+    "en-name": "Step by Step",
+    "target": "q3",
+    "type": "Quest / Phase 1",
+    "reward": "Sixes 완료 즉시, 상단 보너스 점수가 +35점에서 +55점으로 영구 강화",
+    "description": "<strong><u>퀘스트</strong></u>: 숫자 족보들을 위에서부터 순서대로 기입해야 합니다.(Aces부터 Sixes까지)<br><br>퀘스트 완료 시, 상단 보너스가 55점으로 강화됩니다.",
+    "augmentId": "step-by-step"
+  },
+  {
+    "id": 30,
+    "name": "두 집 살림",
+    "en-name": "Two Households",
+    "target": "q4",
+    "type": "Quest",
+    "reward": "기입 즉시 보너스 +10점 획득",
+    "description": "<strong><u>퀘스트</strong></u>: '풀하우스'를 달성하여 기입하고, '초이스' 항목도 풀하우스 족보의 형태로 기입합니다.<br><br>퀘스트 완료 시, 보너스 10점을 획득합니다.",
+    "augmentId": "two-households"
+  },
+  {
+    "id": 31,
+    "name": "알박기",
+    "en-name": "Holdout",
+    "target": "q5",
+    "type": "Quest",
+    "reward": "기입 즉시 보너스 +7점 획득",
+    "description": "<strong><u>퀘스트</strong></u>: 9~12턴 사이에 풀하우스 족보를 기입합니다.<br><br>퀘스트 완료 시, 보너스 7점을 획득합니다.",
+    "augmentId": "holdout"
+  },
+  {
+    "id": 32,
+    "name": "신중한 스트레이트",
+    "en-name": "Cautious Straight",
+    "target": "q6",
+    "type": "Quest",
+    "reward": "순서대로 모두 기입 완료 시 보너스 +7점 획득",
+    "description": "<strong><u>퀘스트</strong></u>: 스몰 스트레이트 족보를 기입한 후에 라지 스트레이트를 기입합니다.(순서를 어길 시 퀘스트 실패)<br><br>퀘스트 완료 시, 보너스 7점을 획득합니다.",
+    "augmentId": "cautious-straight"
+  },
+  {
+    "id": 33,
+    "name": "티끌 모아 태산",
+    "en-name": "Every Little Makes a Mickle",
+    "target": "q7",
+    "type": "Quest",
+    "reward": "달성 즉시 보너스 +15점 획득",
+    "description": "<strong><u>퀘스트</strong></u>: 족보를 기입할 때, 1 눈금이 나온 주사위를 누적 7개 사용합니다. 한 턴에 여러 개를 사용하면 모두 누적됩니다.<br><br>퀘스트 완료 시, 보너스 15점을 획득합니다.",
+    "augmentId": "every-little"
+  },
+  {
+    "id": 34,
+    "name": "카피캣",
+    "en-name": "Copycat",
+    "target": "q8",
+    "type": "Quest",
+    "reward": "보너스 +10점 획득",
+    "description": "<strong><u>퀘스트</strong></u>: 상대가 입력한 족보를 따라서 3회 기입합니다. 하단 족보를 따라 기입했을 때, 족보의 값이 동일하다면 즉시 퀘스트를 완료합니다.<br><br>퀘스트 완료 시, 보너스 10점을 획득합니다.",
+    "augmentId": "copycat"
+  },
+  {
+    "id": 35,
+    "name": "더블링",
+    "en-name": "Doubling",
+    "target": "q9",
+    "type": "Quest",
+    "reward": "보너스 +10점 획득",
+    "description": "<strong><u>퀘스트</strong></u>: 동일한 점수로 족보를 두 번 기입합니다. (스크래치 제외)<br><br>퀘스트 완료 시, 보너스 10점을 획득합니다.",
+    "augmentId": "doubling"
+  },
+  {
+    "id": 36,
+    "name": "노즈도르무",
+    "en-name": "Nozdormu",
+    "target": "q10",
+    "type": "Quest",
+    "reward": "보너스 +9점 획득",
+    "description": "<strong><u>퀘스트</strong></u>: 다음 페이즈 전까지 나의 턴 타이머를 15초로 설정합니다.<br><br>퀘스트 완료 시, 보너스 9점을 획득합니다.",
+    "augmentId": "nozdormu"
+  },
+  {
+    "id": 37,
+    "name": "묵직한 주사위",
+    "en-name": "Weighted Dice",
+    "description": "기본 주사위를 <strong><u>묵직한 주사위</strong></u>로 변경합니다.<br><br>묵직한 주사위는 <strong><u>4, 4, 5, 5, 6, 6</u></strong> 눈금 조합을 가집니다.",
+    "augmentId": "weighted-dice"
+  },
+  {
+    "id": 38,
+    "name": "추진력",
+    "en-name": "Momentum",
+    "description": "<strong><u>족보에 처음으로 0점(스크래치)을 기록했을 때 발동</strong></u>합니다.<br><br>다음 턴에 족보를 기입하여 점수를 획득하면 해당 획득 점수(보너스 포함)가 1.5배로 증가합니다.<br><br>(소수점은 버리며, 단 1회 발동합니다.)",
+    "augmentId": "momentum"
+  },
+  {
+    "id": 39,
+    "name": "황금 주사위",
+    "en-name": "Golden Die",
+    "description": "기본 주사위를 <strong><u>황금 주사위</strong></u>로 변경합니다.<br><br>황금 주사위는 족보 기입 시 이 주사위 눈금이 1, 2, 3 중 하나라면 +2점 추가로 획득합니다.",
+    "augmentId": "golden-die"
+  },
+  {
+    "id": 41,
+    "name": "8면 주사위",
+    "en-name": "8-Sided Dice",
+    "description": "기본 주사위를 <strong><u>8면 주사위</strong></u>로 변경합니다.<br><br>8면 주사위는 <strong><u>1, 2, 3, 4, 4, 5, 5, 6</u></strong> 눈금 조합을 가집니다.",
+    "augmentId": "8-sided"
+  },
+  {
+    "id": 42,
+    "name": "이상한 주사위",
+    "en-name": "Strange Die",
+    "description": "기본 주사위를 <strong><u>이상한 주사위</strong></u>로 변경합니다.<br><br>이상한 주사위는 족보에 쓸 수 없는 조커 주사위이며, <strong><u>+2, +1, +1, 0, -1, 파괴</u></strong> 눈금 조합을 가집니다.<br><br>매 턴 족보 기입 시 눈금에 표시된 만큼 추가로 점수를 얻으며, 파괴 면이 나온 상태로 족보를 기입하면 주사위가 사라집니다.",
+    "augmentId": "strange-die",
+    "isAvailable": false
+  },
+  {
+    "id": 43,
+    "name": "프로모션 주사위",
+    "en-name": "Promotion Die",
+    "description": "기본 주사위 1개를 <strong><u>프로모션 주사위</strong></u>로 변경합니다.<br><br>프로모션 주사위는 턴이 지날수록 눈금이 1씩 상승(최대 6)하며, 6의 눈인 상태에서 족보를 기입할 시 소모되어 기본 주사위로 돌아옵니다.",
+    "augmentId": "promotion-die"
+  },
+  {
+    "id": 44,
+    "name": "커플 주사위",
+    "en-name": "Couple Dice",
+    "description": "기본 주사위 2개를 <strong><u>커플 주사위</strong></u>로 변경합니다.<br><br>커플 주사위는 족보 기입 시 두 주사위의 눈금이 같다면 +3점 추가 획득하는 특성을 가집니다.",
+    "augmentId": "couple-dice"
+  },
+  {
+    "id": 45,
+    "name": "세븐스 다이스",
+    "en-name": "Sevens Dice",
+    "description": "기본 주사위 2개를 <strong><u>세븐스 다이스</strong></u>로 변경합니다.<br><br>세븐스 다이스는 <strong><u>2, 3, 4, 5, 6, 7</u></strong> 눈금 조합을 가집니다.<br><br>추가되는 7의 눈으로 족보를 완성할 수 있도록 조건이 확장됩니다.",
+    "augmentId": "sevens-dice"
+  },
+  {
+    "id": 46,
+    "name": "판 뒤집기",
+    "en-name": "Table Flip",
+    "type": "Enhancement",
+    "description": "게임 당 한 번, 내 턴에 판 뒤집기를 사용 가능합니다.<br><br>킵 하지 않은 주사위가 위로 솟구친 다음 떨어져 다시 굴러갑니다. (리롤을 소모하지 않습니다.)",
+    "augmentId": "table-flip"
+  },
+  {
+    "id": 47,
+    "name": "등가교환",
+    "en-name": "Equivalent Exchange",
+    "type": "Enhancement",
+    "description": "게임 중 세 번, 리롤을 다 소모한 후에도 -5점의 페널티를 받고 주사위를 추가로 굴릴 수 있습니다.<br><br>(한 라운드에서 연속해서 사용할 수 있습니다.)",
+    "augmentId": "equivalent-exchange"
+  },
+  {
+    "id": 48,
+    "name": "현상금 사냥꾼",
+    "en-name": "Bounty Hunter",
+    "target": "q11",
+    "type": "Quest",
+    "reward": "보너스 +15점 획득",
+    "description": "<strong><u>퀘스트</strong></u>: 매 턴마다 점수가 기입되지 않은 족보 중 무작위 하나가 타겟으로 지정됩니다. 타겟이 된 족보를 3회 기입합니다. <br><br>단, 스크래치(0점)로 기입 시 최종 보너스가 -3점씩 감소합니다.",
+    "augmentId": "bounty-hunter"
+  },
+  {
+    "id": 49,
+    "name": "결투",
+    "en-name": "Duel",
+    "type": "Enhancement",
+    "description": "증강을 획득한 라운드에 상대와 결투합니다.<br><br>해당 라운드에 기입한 최종 점수가 더 높으면 보너스 10점을 획득하고, 동점이면 결투 보유자만 보너스 5점을 획득합니다.",
+    "augmentId": "duel"
+  },
+  {
+    "id": 50,
+    "name": "코인 토스",
+    "en-name": "Coin Toss",
+    "type": "Enhancement",
+    "description": "게임당 한 번, 첫 굴림 후 동전 3개를 던집니다.<br><br>앞면 0개는 -5점, 1개는 가장 낮은 주사위를 6으로 변경, 2개는 리롤 +1회, 3개는 상단 보너스 조건을 57점으로 낮춥니다.",
+    "augmentId": "coin-toss"
+  },
+  {
+    "id": 51,
+    "name": "랜덤 박스",
+    "en-name": "Random Box",
+    "type": "Enhancement",
+    "description": "두 플레이어의 증강 선택이 끝나면 이 카드를 퀘스트를 제외한 무작위 증강 하나로 교체합니다.<br><br>동시에 상단 보너스 획득 조건을 58점으로 낮춥니다.",
+    "augmentId": "random-box"
+  },
+  {
+    "id": 52,
+    "name": "예지자",
+    "en-name": "Prophet",
+    "target": "q12",
+    "type": "Quest",
+    "reward": "일치할 때마다 보너스 +7점 획득",
+    "description": "<strong><u>퀘스트</strong></u>: 3턴 동안 매 턴 제시되는 1~30 사이 숫자 3개 중 하나와 동일한 점수로 족보에 기입합니다.<br><br>일치할 때마다 보너스 7점을 획득합니다.",
+    "augmentId": "prophet"
+  },
+  {
+    "id": 53,
+    "name": "갬빗",
+    "en-name": "Gambit",
+    "type": "Enhancement",
+    "description": "게임당 한 번, 굴리기 전에 갬빗을 선언합니다.<br><br>이번 턴에는 일반 주사위 4개, 다음 내 턴에는 일반 주사위 6개만 사용합니다.",
+    "augmentId": "gambit"
+  },
+  {
+    "id": 54,
+    "name": "더블 다운",
+    "en-name": "Double Down",
+    "type": "Enhancement",
+    "description": "9턴부터 게임당 한 번, 굴리기 전에 선언할 수 있습니다.<br><br>이번 턴 유효 점수를 1.5배로 만들며, 추진력과 함께 발동하면 2배로 적용합니다.",
+    "augmentId": "double-down"
+  },
+  {
+    "id": 55,
+    "name": "저금통",
+    "en-name": "Piggy Bank",
+    "type": "Enhancement",
+    "description": "턴 종료 시 남은 리롤 1회당 3점을 저금합니다.<br><br>저금액이 12점에 도달하면 즉시 보너스 12점을 획득하고 저금통을 비웁니다.",
+    "augmentId": "piggy-bank"
+  },
+  {
+    "id": 56,
+    "name": "주사위 연금술",
+    "en-name": "Dice Alchemy",
+    "type": "Enhancement",
+    "description": "게임당 한 번, 현재 굴림 존의 모든 주사위 눈을 1씩 낮춥니다.<br><br>주사위 눈은 1보다 낮아지지 않으며 킵한 주사위는 변경하지 않습니다.",
+    "augmentId": "dice-alchemy"
+  }
+]
