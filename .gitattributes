@@ -169,3 +169,7 @@ Packages/packages-lock.json linguist-generated
 
 # Exceptions for .asset files such as lightning pre-baking
 LightingData.asset     binary
+
+# 주사위 프리셋 생성 툴
+preset-studio/** linguist-vendored
+
