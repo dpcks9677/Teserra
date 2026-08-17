@@ -12,6 +12,11 @@ namespace Tessera.EditorTools
         [MenuItem("Tools/Tessera/Rebuild Tabletop Layout")]
         public static void RebuildLayout()
         {
+            if (EditorApplication.isPlaying)
+            {
+                Debug.LogWarning("플레이 모드 중에는 에디터 레이아웃 재구성을 실행할 수 없습니다.");
+                return;
+            }
             // 1. Hierarchy 상의 모든 종이 및 구버전 오브젝트 영구 삭제
             string[] targets = { "Paper", "Score Sheet", "Game Info", "Burgundy", "Medieval Wood Planks Table", "Emerald Wide Runner", "Emerald Ribbon Runner" };
             GameObject[] allObjects = Resources.FindObjectsOfTypeAll<GameObject>();

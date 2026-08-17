@@ -56,8 +56,10 @@ namespace Tessera.Games.AugmentedYacht
         private Transform layoutRoot;
         private Transform diceRoot;
         private ParchmentScoreSheet parchmentScoreSheet;
+        private AugmentCardTray augmentCardTray;
 
         public ParchmentScoreSheet ScoreSheet => parchmentScoreSheet;
+        public AugmentCardTray CardTray => augmentCardTray;
 
         private Coroutine rollRoutine;
         private Coroutine keepRoutine;
@@ -1064,8 +1066,8 @@ namespace Tessera.Games.AugmentedYacht
 
         private void BuildTableLayout()
         {
-            // 기존 테이블/러너/종이/매트/양피지 오브젝트 정리 후 재생성 (중복 및 구버전 방지)
-            string[] cleanupKeywords = { "Paper", "Score Sheet", "Layered Parchment", "Game Info", "Burgundy", "3D Wood Planks Table", "3D Fabric Runner", "Medieval Wood Planks Table", "Emerald Wide Runner", "Emerald Ribbon Runner", "Solid Burgundy Game Mat" };
+            // 기존 테이블/러너/종이/매트/양피지/트레이 오브젝트 정리 후 재생성 (중복 및 구버전 방지)
+            string[] cleanupKeywords = { "Paper", "Score Sheet", "Layered Parchment", "Game Info", "Burgundy", "3D Wood Planks Table", "3D Fabric Runner", "Medieval Wood Planks Table", "Emerald Wide Runner", "Emerald Ribbon Runner", "Solid Burgundy Game Mat", "Augment Card Tray", "Stone Augment Card Tray" };
             
             // 1. layoutRoot 직계 자식 정리
             if (layoutRoot != null)
@@ -1098,7 +1100,7 @@ namespace Tessera.Games.AugmentedYacht
 #if UNITY_EDITOR
                 if (UnityEditor.EditorUtility.IsPersistent(go)) continue;
 #endif
-                if (go.name.Contains("Paper") || go.name.Contains("Score Sheet") || go.name.Contains("Layered Parchment") || go.name.Contains("Game Info") || go.name.Contains("Burgundy") || go.name.Contains("Inkwell") || go.name.Contains("Quill") || go.name.Contains("Paperweight"))
+                if (go.name.Contains("Paper") || go.name.Contains("Score Sheet") || go.name.Contains("Layered Parchment") || go.name.Contains("Game Info") || go.name.Contains("Burgundy") || go.name.Contains("Inkwell") || go.name.Contains("Quill") || go.name.Contains("Paperweight") || go.name.Contains("Augment Card Tray"))
                 {
                     if (Application.isPlaying) Destroy(go);
                     else DestroyImmediate(go);
@@ -1111,17 +1113,27 @@ namespace Tessera.Games.AugmentedYacht
             // Layer 2 (Mid): 가로 기준 + 약 4.5도 사선 회전 3D 딥 크림슨 패브릭 러너 + 골드 트림 생성
             Create3DFabricRunner();
 
-            // Layer 3 (Top): 주사위 트레이 배치
+            // Layer 3 (Center): 주사위 트레이 배치
             CreateGameTray();
 
-            // Layer 4 (Right): 우측 3D 레이어드 양피지 야추 족보 점수표 생성
+            // Layer 4 (Left): 좌측 3D 스톤 증강 카드 트레이 (카탄 3구 슬롯 + 하스스톤 스톤 룩앤필)
+            CreateAugmentCardTray();
+
+            // Layer 5 (Right): 우측 3D 레이어드 양피지 야추 족보 점수표 생성
             CreateScoreSheet();
 
-            // Layer 5 (Bottom-Right): 우측 하단 3D 앤틱 원통형 황동 잉크통 & 2시 방향 깃펜 오브젝트 생성
+            // Layer 6 (Bottom-Right): 우측 하단 3D 앤틱 원통형 황동 잉크통 & 2시 방향 깃펜 오브젝트 생성
             CreateInkwellAndQuill();
 
-            // Layer 6 (Top-Parchment): 양피지 상단 3D 고풍스러운 다크 조약돌 누름돌(Paperweight) 생성
+            // Layer 7 (Top-Parchment): 양피지 상단 3D 고풍스러운 다크 조약돌 누름돌(Paperweight) 생성
             CreatePaperweight();
+        }
+
+        private void CreateAugmentCardTray()
+        {
+            Vector3 trayPos = new Vector3(-10f, 0.1f, -0.3f);
+            Vector3 trayScale = Vector3.one * 1.5f;
+            augmentCardTray = AugmentCardTray.Create(layoutRoot, trayPos, trayScale);
         }
 
         private void CreateScoreSheet()
