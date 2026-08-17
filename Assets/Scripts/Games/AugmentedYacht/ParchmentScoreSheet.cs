@@ -128,11 +128,19 @@ namespace Tessera.Games.AugmentedYacht
 
         public void Build3DLayeredParchments()
         {
-            while (transform.childCount > 0)
+            for (int i = transform.childCount - 1; i >= 0; i--)
             {
-                Transform child = transform.GetChild(0);
-                if (Application.isPlaying) Destroy(child.gameObject);
-                else DestroyImmediate(child.gameObject);
+                Transform child = transform.GetChild(i);
+                if (child == null) continue;
+                if (Application.isPlaying)
+                {
+                    child.SetParent(null);
+                    Destroy(child.gameObject);
+                }
+                else
+                {
+                    DestroyImmediate(child.gameObject);
+                }
             }
 
             CleanupExistingPipelines();
