@@ -117,6 +117,15 @@ namespace Tessera.Games.AugmentedYacht
             return comp;
         }
 
+        private void Start()
+        {
+            if (GameObject.Find("HighRes Score Sheet Overlay") == null)
+            {
+                BuildDotMinimalOverlayUI();
+                RefreshAllScores();
+            }
+        }
+
         public void Build3DLayeredParchments()
         {
             while (transform.childCount > 0)
@@ -226,12 +235,15 @@ namespace Tessera.Games.AugmentedYacht
             }
         }
 
-        private void BuildDotMinimalOverlayUI()
+        public void BuildDotMinimalOverlayUI()
         {
             Canvas presentationCanvas = GameObject.Find("Pixel Presentation")?.GetComponent<Canvas>() ?? FindFirstObjectByType<Canvas>();
             if (presentationCanvas == null) return;
 
+            CleanupExistingPipelines();
+
             GameObject overlayRoot = new("HighRes Score Sheet Overlay", typeof(RectTransform));
+            overlayRoot.layer = 0;
             overlayRoot.transform.SetParent(presentationCanvas.transform, false);
             highResOverlayRect = overlayRoot.GetComponent<RectTransform>();
             highResOverlayRect.pivot = new Vector2(0.5f, 0.5f);
@@ -419,21 +431,31 @@ namespace Tessera.Games.AugmentedYacht
             Vector3 worldMin = center - new Vector3(lossyScale.x * 0.5f, 0f, lossyScale.z * 0.5f);
             Vector3 worldMax = center + new Vector3(lossyScale.x * 0.5f, 0f, lossyScale.z * 0.5f);
 
-            Vector3 screenMin = targetWorldCamera.WorldToScreenPoint(worldMin);
-            Vector3 screenMax = targetWorldCamera.WorldToScreenPoint(worldMax);
+            Vector3 vpMin = targetWorldCamera.WorldToViewportPoint(worldMin);
+            Vector3 vpMax = targetWorldCamera.WorldToViewportPoint(worldMax);
 
-            float width = Mathf.Abs(screenMax.x - screenMin.x);
-            float height = Mathf.Abs(screenMax.y - screenMin.y);
-            Vector3 screenCenter = (screenMin + screenMax) * 0.5f;
+            float screenW = Screen.width;
+            float screenH = Screen.height;
 
-            highResOverlayRect.position = screenCenter;
+            float xMin = vpMin.x * screenW;
+            float xMax = vpMax.x * screenW;
+            float yMin = vpMin.y * screenH;
+            float yMax = vpMax.y * screenH;
+
+            float width = Mathf.Abs(xMax - xMin);
+            float height = Mathf.Abs(yMax - yMin);
+            Vector3 screenCenter = new Vector3((xMin + xMax) * 0.5f, (yMin + yMax) * 0.5f, 0f);
+
+            highResOverlayRect.anchorMin = highResOverlayRect.anchorMax = new Vector2(0.5f, 0.5f);
+            highResOverlayRect.pivot = new Vector2(0.5f, 0.5f);
+            highResOverlayRect.anchoredPosition = new Vector2(screenCenter.x - screenW * 0.5f, screenCenter.y - screenH * 0.5f);
             highResOverlayRect.sizeDelta = new Vector2(width, height);
         }
 
         private static void CreateColoredBox(Transform parent, string name, Vector2 posMin, Vector2 size, Color color)
         {
             GameObject box = new(name, typeof(RectTransform), typeof(Image));
-            box.layer = DecorationLayer;
+            box.layer = 0;
             box.transform.SetParent(parent, false);
 
             RectTransform rect = box.GetComponent<RectTransform>();
@@ -450,7 +472,7 @@ namespace Tessera.Games.AugmentedYacht
         private static Image CreateIconImage(Transform parent, string iconName, Vector2 pos, float size, Color? tint = null)
         {
             GameObject obj = new($"Icon_{iconName}", typeof(RectTransform), typeof(Image));
-            obj.layer = DecorationLayer;
+            obj.layer = 0;
             obj.transform.SetParent(parent, false);
 
             RectTransform rect = obj.GetComponent<RectTransform>();
@@ -472,7 +494,7 @@ namespace Tessera.Games.AugmentedYacht
         private Text CreateLabel(Transform parent, Font font, string text, Vector2 pos, Vector2 size, int fontSize, FontStyle style, Color color, TextAnchor alignment)
         {
             GameObject obj = new("Label", typeof(RectTransform), typeof(Text), typeof(Shadow));
-            obj.layer = DecorationLayer;
+            obj.layer = 0;
             obj.transform.SetParent(parent, false);
 
             RectTransform rect = obj.GetComponent<RectTransform>();

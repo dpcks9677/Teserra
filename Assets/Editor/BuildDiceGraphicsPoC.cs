@@ -55,8 +55,8 @@ public static class BuildDiceGraphicsPoC
 
     private static void BuildOnce()
     {
-        if (EditorApplication.isPlayingOrWillChangePlaymode) return;
-        if (EditorApplication.isCompiling)
+        if (EditorApplication.isPlayingOrWillChangePlaymode || EditorApplication.isPlaying || Application.isPlaying) return;
+        if (EditorApplication.isCompiling || EditorApplication.isUpdating)
         {
             EditorApplication.delayCall += BuildOnce;
             return;
@@ -80,12 +80,14 @@ public static class BuildDiceGraphicsPoC
     [MenuItem("Tools/Tessera/Upgrade Scene To Yacht Tray")]
     public static void UpgradeExistingSceneToYachtTray()
     {
+        if (EditorApplication.isPlayingOrWillChangePlaymode || EditorApplication.isPlaying || Application.isPlaying) return;
         Mesh trayMesh = EnsureYachtTrayMesh();
         if (trayMesh != null) UpgradeExistingSceneToYachtTray(trayMesh);
     }
 
     private static void UpgradeExistingSceneToYachtTray(Mesh trayMesh)
     {
+        if (EditorApplication.isPlayingOrWillChangePlaymode || EditorApplication.isPlaying || Application.isPlaying) return;
         Scene scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
         AugmentedYachtController controller = Object.FindFirstObjectByType<AugmentedYachtController>();
         if (controller == null)
@@ -104,6 +106,7 @@ public static class BuildDiceGraphicsPoC
     [MenuItem("Tools/Tessera/Bake Editable Layout Into Scene")]
     public static void BakeEditableLayoutIntoExistingScene()
     {
+        if (EditorApplication.isPlayingOrWillChangePlaymode || EditorApplication.isPlaying || Application.isPlaying) return;
         Scene scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
         AugmentedYachtController controller = Object.FindFirstObjectByType<AugmentedYachtController>();
         if (controller == null)
@@ -112,7 +115,7 @@ public static class BuildDiceGraphicsPoC
             return;
         }
 
-        controller.BuildEditableLayout();
+        controller.BuildEditableLayout(true);
         EditorUtility.SetDirty(controller);
         EditorSceneManager.MarkSceneDirty(scene);
         EditorSceneManager.SaveScene(scene, ScenePath);

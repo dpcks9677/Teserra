@@ -4,7 +4,7 @@ Shader "DicePoC/PixelUpscale"
     {
         [PerRendererData] _MainTex ("Texture", 2D) = "white" {}
         _ColorSteps ("Color Steps", Range(2, 12)) = 6
-        _Quantize ("Quantize", Float) = 1
+        _Quantize ("Quantize", Float) = 0
         _VirtualResolution ("Virtual Resolution", Vector) = (640, 360, 0, 0)
     }
     SubShader

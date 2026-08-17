@@ -57,9 +57,13 @@ namespace Tessera.Games.AugmentedYacht
         private Transform diceRoot;
         private ParchmentScoreSheet parchmentScoreSheet;
         private AugmentCardTray augmentCardTray;
+        private RollOrb rollOrb;
+        private RerollCounterBar rerollCounterBar;
 
         public ParchmentScoreSheet ScoreSheet => parchmentScoreSheet;
         public AugmentCardTray CardTray => augmentCardTray;
+        public RollOrb RollOrb => rollOrb;
+        public RerollCounterBar RerollCounter => rerollCounterBar;
 
         private Coroutine rollRoutine;
         private Coroutine keepRoutine;
@@ -104,10 +108,36 @@ namespace Tessera.Games.AugmentedYacht
             return index >= 0 && index < diceValues.Count ? diceValues[index] : 0;
         }
 
-        public void BuildEditableLayout()
+        public void BuildEditableLayout(bool forceRebuild = false)
         {
             if (Application.isPlaying) return;
-            if (editableLayoutBuilt && ResolveEditableLayout()) return;
+            if (!forceRebuild && editableLayoutBuilt && ResolveEditableLayout()) return;
+
+            if (upscaleShader == null)
+            {
+#if UNITY_EDITOR
+                upscaleShader = UnityEditor.AssetDatabase.LoadAssetAtPath<Shader>("Assets/Rendering/Shaders/DicePixelUpscale.shader")
+                    ?? Shader.Find("DicePoC/PixelUpscale");
+#else
+                upscaleShader = Shader.Find("DicePoC/PixelUpscale");
+#endif
+            }
+
+            // 부모 transform 아래의 기존 모든 프레젠테이션 및 레이아웃 오브젝트 전수 제거
+            List<GameObject> toDestroy = new();
+            for (int i = 0; i < transform.childCount; i++)
+            {
+                Transform child = transform.GetChild(i);
+                if (child != null && (child.name.Contains("Pixel Presentation") || child.name.Contains("Graphics Layout") || child.name.Contains("Display 1 Camera")))
+                {
+                    toDestroy.Add(child.gameObject);
+                }
+            }
+            foreach (GameObject go in toDestroy)
+            {
+                if (Application.isPlaying) Destroy(go);
+                else DestroyImmediate(go);
+            }
 
             BuildWorld();
             BuildPresentation();
@@ -167,11 +197,32 @@ namespace Tessera.Games.AugmentedYacht
             ApplyRenderSettings();
             ConfigureLighting();
             SyncTrayVisualMat();
+            EnsureSingleAudioListener();
             InitializeAudio();
             InitializePresetCatalog();
             InitializeBakedController();
             EnsureDiceRoot();
             EnsureDiceState();
+
+            if (parchmentScoreSheet == null) parchmentScoreSheet = FindFirstObjectByType<ParchmentScoreSheet>();
+            if (parchmentScoreSheet != null)
+            {
+                parchmentScoreSheet.BuildDotMinimalOverlayUI();
+                parchmentScoreSheet.RefreshAllScores();
+            }
+
+            if (rollOrb == null) rollOrb = FindFirstObjectByType<RollOrb>();
+            if (rollOrb != null)
+            {
+                rollOrb.BuildGeometry();
+            }
+
+            if (rerollCounterBar == null) rerollCounterBar = FindFirstObjectByType<RerollCounterBar>();
+            if (rerollCounterBar != null)
+            {
+                rerollCounterBar.BuildGeometry();
+                rerollCounterBar.SetRollsRemaining(3, 3);
+            }
         }
 
         private void EnsureDiceMaterials()
@@ -206,6 +257,7 @@ namespace Tessera.Games.AugmentedYacht
             {
                 SyncTableBackground();
                 SyncTrayVisualMat();
+                ApplyRenderSettings();
             }
 #endif
         }
@@ -217,6 +269,7 @@ namespace Tessera.Games.AugmentedYacht
             {
                 SyncTableBackground();
                 SyncTrayVisualMat();
+                ApplyRenderSettings();
             }
         }
 #endif
@@ -829,10 +882,19 @@ namespace Tessera.Games.AugmentedYacht
                 0f);
             Ray ray = worldCamera.ViewportPointToRay(viewport);
             int hitIndex = -1;
+            bool hitOrb = false;
             if (Physics.Raycast(ray, out RaycastHit hit, 50f))
             {
                 DiceKeepTarget target = hit.collider.GetComponentInParent<DiceKeepTarget>();
                 if (target != null) hitIndex = target.Index;
+
+                RollOrb orb = hit.collider.GetComponentInParent<RollOrb>();
+                if (orb != null) hitOrb = true;
+            }
+
+            if (rollOrb != null)
+            {
+                rollOrb.SetHovered(hitOrb);
             }
 
             if (hoveredDieIndex != hitIndex)
@@ -933,11 +995,59 @@ namespace Tessera.Games.AugmentedYacht
             statusText = statusObject != null ? statusObject.GetComponent<Text>() : null;
             upscaleMaterial = gameImage != null ? gameImage.material : null;
 
+            if (imageObject != null)
+            {
+                imageObject.SetActive(true);
+            }
+
+            EnsureSingleAudioListener();
+
             // 항상 최신 테이블 및 배경 레이아웃 동기화
             BuildTableLayout();
 
+            if (rollOrb == null) rollOrb = FindFirstObjectByType<RollOrb>();
+            if (rerollCounterBar == null) rerollCounterBar = FindFirstObjectByType<RerollCounterBar>();
+
             ApplyTopDownCamera();
+            CreateRenderTarget();
+            ApplyRenderSettings();
             return worldCamera != null && presentationCamera != null && gameImage != null;
+        }
+
+        private void EnsureSingleAudioListener()
+        {
+            if (worldCamera == null)
+            {
+                GameObject camObj = GameObject.Find("Full Field World Camera") ?? GameObject.Find("Low Resolution World Camera");
+                if (camObj != null) worldCamera = camObj.GetComponent<Camera>();
+            }
+
+            AudioListener[] allListeners = Resources.FindObjectsOfTypeAll<AudioListener>();
+            bool foundPrimary = false;
+            foreach (AudioListener al in allListeners)
+            {
+                if (al == null) continue;
+#if UNITY_EDITOR
+                if (UnityEditor.EditorUtility.IsPersistent(al.gameObject)) continue;
+#endif
+                if (!foundPrimary && worldCamera != null && al.gameObject == worldCamera.gameObject)
+                {
+                    al.enabled = true;
+                    foundPrimary = true;
+                }
+                else
+                {
+                    if (Application.isPlaying) Destroy(al);
+                    else DestroyImmediate(al);
+                }
+            }
+
+            if (!foundPrimary && worldCamera != null)
+            {
+                AudioListener al = worldCamera.GetComponent<AudioListener>();
+                if (al == null) al = worldCamera.gameObject.AddComponent<AudioListener>();
+                al.enabled = true;
+            }
         }
 
         public void SyncTableBackground()
@@ -1010,6 +1120,28 @@ namespace Tessera.Games.AugmentedYacht
 
             EnsureLayoutRoot();
 
+            // 씬 전체의 모든 구버전 카메라 전수 검색 및 삭제 (중복 생성 방지)
+            GameObject[] allSceneObjects = Resources.FindObjectsOfTypeAll<GameObject>();
+            foreach (GameObject go in allSceneObjects)
+            {
+                if (go == null) continue;
+#if UNITY_EDITOR
+                if (UnityEditor.EditorUtility.IsPersistent(go)) continue;
+#endif
+                if (go.name == "Full Field World Camera" || go.name == "Low Resolution World Camera")
+                {
+                    if (Application.isPlaying) Destroy(go);
+                    else DestroyImmediate(go);
+                }
+            }
+
+            Transform existingLight = layoutRoot != null ? layoutRoot.Find("Key Light") : null;
+            if (existingLight != null)
+            {
+                if (Application.isPlaying) Destroy(existingLight.gameObject);
+                else DestroyImmediate(existingLight.gameObject);
+            }
+
             GameObject cameraObject = new("Full Field World Camera", typeof(Camera), typeof(AudioListener));
             cameraObject.transform.SetParent(layoutRoot, false);
             worldCamera = cameraObject.GetComponent<Camera>();
@@ -1067,7 +1199,7 @@ namespace Tessera.Games.AugmentedYacht
         private void BuildTableLayout()
         {
             // 기존 테이블/러너/종이/매트/양피지/트레이 오브젝트 정리 후 재생성 (중복 및 구버전 방지)
-            string[] cleanupKeywords = { "Paper", "Score Sheet", "Layered Parchment", "Game Info", "Burgundy", "3D Wood Planks Table", "3D Fabric Runner", "Medieval Wood Planks Table", "Emerald Wide Runner", "Emerald Ribbon Runner", "Solid Burgundy Game Mat", "Augment Card Tray", "Stone Augment Card Tray" };
+            string[] cleanupKeywords = { "Paper", "Score Sheet", "Layered Parchment", "Game Info", "Burgundy", "3D Wood Planks Table", "3D Fabric Runner", "Medieval Wood Planks Table", "Emerald Wide Runner", "Emerald Ribbon Runner", "Solid Burgundy Game Mat", "Augment Card Tray", "Stone Augment Card Tray", "Roll Orb", "Reroll Counter Bar" };
             
             // 1. layoutRoot 직계 자식 정리
             if (layoutRoot != null)
@@ -1100,7 +1232,7 @@ namespace Tessera.Games.AugmentedYacht
 #if UNITY_EDITOR
                 if (UnityEditor.EditorUtility.IsPersistent(go)) continue;
 #endif
-                if (go.name.Contains("Paper") || go.name.Contains("Score Sheet") || go.name.Contains("Layered Parchment") || go.name.Contains("Game Info") || go.name.Contains("Burgundy") || go.name.Contains("Inkwell") || go.name.Contains("Quill") || go.name.Contains("Paperweight") || go.name.Contains("Augment Card Tray"))
+                if (go.name.Contains("Paper") || go.name.Contains("Score Sheet") || go.name.Contains("Layered Parchment") || go.name.Contains("Game Info") || go.name.Contains("Burgundy") || go.name.Contains("Inkwell") || go.name.Contains("Quill") || go.name.Contains("Paperweight") || go.name.Contains("Augment Card Tray") || go.name.Contains("Roll Orb") || go.name.Contains("Reroll Counter Bar"))
                 {
                     if (Application.isPlaying) Destroy(go);
                     else DestroyImmediate(go);
@@ -1127,6 +1259,26 @@ namespace Tessera.Games.AugmentedYacht
 
             // Layer 7 (Top-Parchment): 양피지 상단 3D 고풍스러운 다크 조약돌 누름돌(Paperweight) 생성
             CreatePaperweight();
+
+            // Layer 8 (Tray Bottom-Left): 주사위 트레이 하단 좌측 3D 남은 롤 횟수 안내 마나 크리스탈 바
+            CreateRerollCounterBar();
+
+            // Layer 9 (Tray Bottom-Right): 주사위 트레이 하단 우측 3D 스타일라이즈드 마법 수정구 롤 오브젝트
+            CreateRollOrb();
+        }
+
+        private void CreateRerollCounterBar()
+        {
+            Vector3 counterPos = new Vector3(-2.68f, 0.12f, -5.68f);
+            Vector3 counterScale = Vector3.one * 1.30f;
+            rerollCounterBar = RerollCounterBar.Create(layoutRoot, counterPos, null, counterScale);
+        }
+
+        private void CreateRollOrb()
+        {
+            Vector3 orbPos = new Vector3(2.25f, 0.12f, -5.84f);
+            Vector3 orbScale = Vector3.one * 1.35f;
+            rollOrb = RollOrb.Create(layoutRoot, orbPos, null, orbScale);
         }
 
         private void CreateAugmentCardTray()
@@ -1479,6 +1631,21 @@ namespace Tessera.Games.AugmentedYacht
         {
             EnsureEventSystem();
 
+            // 씬 전체의 모든 구버전 Pixel Presentation 및 Display 1 Camera 전수 검색 및 영구 삭제
+            GameObject[] allSceneObjects = Resources.FindObjectsOfTypeAll<GameObject>();
+            foreach (GameObject go in allSceneObjects)
+            {
+                if (go == null) continue;
+#if UNITY_EDITOR
+                if (UnityEditor.EditorUtility.IsPersistent(go)) continue;
+#endif
+                if (go.name == "Pixel Presentation" || go.name == "Display 1 Camera")
+                {
+                    if (Application.isPlaying) Destroy(go);
+                    else DestroyImmediate(go);
+                }
+            }
+
             GameObject canvasObject = new("Pixel Presentation", typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
             canvasObject.transform.SetParent(transform, false);
             Canvas canvas = canvasObject.GetComponent<Canvas>();
@@ -1507,6 +1674,7 @@ namespace Tessera.Games.AugmentedYacht
 
             upscaleMaterial = new Material(upscaleShader != null ? upscaleShader : Shader.Find("UI/Default"));
             gameImage.material = upscaleMaterial;
+            imageObject.SetActive(true);
 
             CreateButton(canvasObject.transform, "Debug", "960 / 640", new Vector2(18f, -18f), new Vector2(130f, 38f), new Vector2(0f, 1f), ToggleResolution);
             keyLightToggleButton = CreateButton(canvasObject.transform, "KeyLightToggle", $"Light: {keyLightPresets[currentKeyLightPresetIndex].name}", new Vector2(158f, -18f), new Vector2(165f, 38f), new Vector2(0f, 1f), ToggleKeyLightPreset);
@@ -1516,6 +1684,13 @@ namespace Tessera.Games.AugmentedYacht
             Canvas.ForceUpdateCanvases();
             CreateRenderTarget();
             BindPresentationActions();
+
+            if (parchmentScoreSheet == null) parchmentScoreSheet = FindFirstObjectByType<ParchmentScoreSheet>();
+            if (parchmentScoreSheet != null)
+            {
+                parchmentScoreSheet.BuildDotMinimalOverlayUI();
+                parchmentScoreSheet.RefreshAllScores();
+            }
         }
 
         private void CreatePresentationCamera()
@@ -1621,7 +1796,11 @@ namespace Tessera.Games.AugmentedYacht
             };
             lowResolutionTarget.Create();
             worldCamera.targetTexture = lowResolutionTarget;
-            gameImage.texture = lowResolutionTarget;
+            if (gameImage != null)
+            {
+                gameImage.gameObject.SetActive(true);
+                gameImage.texture = lowResolutionTarget;
+            }
             FitFullScreen();
         }
 
@@ -1646,12 +1825,27 @@ namespace Tessera.Games.AugmentedYacht
         private void OnDestroy()
         {
             if (worldCamera != null) worldCamera.targetTexture = null;
-            if (presentationCamera != null) Destroy(presentationCamera.gameObject);
-            if (lowResolutionTarget != null) lowResolutionTarget.Release();
-            Destroy(lowResolutionTarget);
-            Destroy(upscaleMaterial);
-            if (diceBodyMaterial != null) Destroy(diceBodyMaterial);
-            if (dicePipMaterial != null) Destroy(dicePipMaterial);
+            if (lowResolutionTarget != null)
+            {
+                lowResolutionTarget.Release();
+                if (Application.isPlaying) Destroy(lowResolutionTarget);
+                else DestroyImmediate(lowResolutionTarget);
+            }
+            if (upscaleMaterial != null)
+            {
+                if (Application.isPlaying) Destroy(upscaleMaterial);
+                else DestroyImmediate(upscaleMaterial);
+            }
+            if (diceBodyMaterial != null)
+            {
+                if (Application.isPlaying) Destroy(diceBodyMaterial);
+                else DestroyImmediate(diceBodyMaterial);
+            }
+            if (dicePipMaterial != null)
+            {
+                if (Application.isPlaying) Destroy(dicePipMaterial);
+                else DestroyImmediate(dicePipMaterial);
+            }
         }
     }
 }
