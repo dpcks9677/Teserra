@@ -88,6 +88,9 @@ namespace Tessera.Games.AugmentedYacht
         [SerializeField] private PlayerScoreData player1Data = new();
         [SerializeField] private PlayerScoreData player2Data = new();
 
+        [Header("Font Settings")]
+        [SerializeField] private Font scoreSheetFont;
+
         private GameObject topLayerObject;
         private RectTransform highResOverlayRect;
         private Camera targetWorldCamera;
@@ -236,15 +239,21 @@ namespace Tessera.Games.AugmentedYacht
             targetWorldCamera = GameObject.Find("Full Field World Camera")?.GetComponent<Camera>() ?? Camera.main;
             SyncOverlayTransform();
 
-            // 큼직하고 굵은 폰트 로드
-            Font fontMain = null;
-            Font fontHeader = null;
+            // 폰트 로드 (Alagard)
+            Font fontMain = scoreSheetFont;
 #if UNITY_EDITOR
-            fontMain = UnityEditor.AssetDatabase.LoadAssetAtPath<Font>("Assets/Fonts/Alegreya.ttf");
-            fontHeader = UnityEditor.AssetDatabase.LoadAssetAtPath<Font>("Assets/Fonts/AlegreyaSC-Bold.ttf") ?? fontMain;
+            if (fontMain == null)
+            {
+                fontMain = UnityEditor.AssetDatabase.LoadAssetAtPath<Font>("Assets/Fonts/alagard.ttf")
+                    ?? UnityEditor.AssetDatabase.LoadAssetAtPath<Font>("Assets/Fonts/m6x11.ttf");
+            }
 #endif
             if (fontMain == null) fontMain = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            if (fontHeader == null) fontHeader = fontMain;
+            if (fontMain != null && fontMain.material != null && fontMain.material.mainTexture != null)
+            {
+                fontMain.material.mainTexture.filterMode = FilterMode.Point;
+            }
+            Font fontHeader = fontMain;
 
             // 도트 색상 팔레트
             Color headerBandColor = new Color32(40, 26, 16, 235);    // #281a10
@@ -317,12 +326,12 @@ namespace Tessera.Games.AugmentedYacht
                 CreateColoredBox(overlayRoot.transform, $"P2_Slot_{r}", new Vector2(colX[2] + 3f, slotY), new Vector2(colX[3] - colX[2] - 6f, slotH), slotInsetColor);
             }
 
-            // 3. 헤더 텍스트 (1.4배 상향)
+            // 3. 헤더 텍스트 (0.9배 & Normal)
             float headerCenterY = -(marginY + rowH * 0.5f);
-            CreateLabel(overlayRoot.transform, fontHeader, "CATEGORIES", new Vector2(colX[0] + 4f, headerCenterY), new Vector2(colX[1] - colX[0] - 8f, rowH), 20, FontStyle.Bold, headerTextGold, TextAnchor.MiddleCenter);
-            CreateLabel(overlayRoot.transform, fontHeader, "P1", new Vector2(colX[1], headerCenterY), new Vector2(colX[2] - colX[1], rowH), 25, FontStyle.Bold, playerHeaderGold, TextAnchor.MiddleCenter);
-            CreateLabel(overlayRoot.transform, fontHeader, "P2", new Vector2(colX[2], headerCenterY), new Vector2(colX[3] - colX[2], rowH), 25, FontStyle.Bold, playerHeaderGold, TextAnchor.MiddleCenter);
-            CreateLabel(overlayRoot.transform, fontHeader, "CATEGORIES", new Vector2(colX[3] + 4f, headerCenterY), new Vector2(colX[4] - colX[3] - 8f, rowH), 20, FontStyle.Bold, headerTextGold, TextAnchor.MiddleCenter);
+            CreateLabel(overlayRoot.transform, fontHeader, "CATEGORIES", new Vector2(colX[0] + 4f, headerCenterY), new Vector2(colX[1] - colX[0] - 8f, rowH), 23, FontStyle.Normal, headerTextGold, TextAnchor.MiddleCenter);
+            CreateLabel(overlayRoot.transform, fontHeader, "P1", new Vector2(colX[1], headerCenterY), new Vector2(colX[2] - colX[1], rowH), 28, FontStyle.Normal, playerHeaderGold, TextAnchor.MiddleCenter);
+            CreateLabel(overlayRoot.transform, fontHeader, "P2", new Vector2(colX[2], headerCenterY), new Vector2(colX[3] - colX[2], rowH), 28, FontStyle.Normal, playerHeaderGold, TextAnchor.MiddleCenter);
+            CreateLabel(overlayRoot.transform, fontHeader, "CATEGORIES", new Vector2(colX[3] + 4f, headerCenterY), new Vector2(colX[4] - colX[3] - 8f, rowH), 23, FontStyle.Normal, headerTextGold, TextAnchor.MiddleCenter);
 
             // 4. 족보 데이터
             string[] upperNames = { "Aces", "Deuces", "Threes", "Fours", "Fives", "Sixes" };
@@ -340,24 +349,24 @@ namespace Tessera.Games.AugmentedYacht
 
                 // Col 0
                 CreateIconImage(overlayRoot.transform, upperIcons[i], new Vector2(colX[0] + 6f, y), iconSize, inkMain);
-                CreateLabel(overlayRoot.transform, fontMain, upperNames[i], new Vector2(colX[0] + 6f + iconSize + 6f, y), new Vector2(colX[1] - colX[0] - iconSize - 14f, rowH), 22, FontStyle.Bold, inkMain, TextAnchor.MiddleLeft);
+                CreateLabel(overlayRoot.transform, fontMain, upperNames[i], new Vector2(colX[0] + 6f + iconSize + 6f, y), new Vector2(colX[1] - colX[0] - iconSize - 14f, rowH), 23, FontStyle.Normal, inkMain, TextAnchor.MiddleLeft);
 
                 // Col 1 & 2
-                p1ScoreLabels[i] = CreateLabel(overlayRoot.transform, fontHeader, "-", new Vector2(colX[1], y), new Vector2(colX[2] - colX[1], rowH), 28, FontStyle.Bold, inkMain, TextAnchor.MiddleCenter);
-                p2ScoreLabels[i] = CreateLabel(overlayRoot.transform, fontHeader, "-", new Vector2(colX[2], y), new Vector2(colX[3] - colX[2], rowH), 28, FontStyle.Bold, inkMain, TextAnchor.MiddleCenter);
+                p1ScoreLabels[i] = CreateLabel(overlayRoot.transform, fontHeader, "-", new Vector2(colX[1], y), new Vector2(colX[2] - colX[1], rowH), 31, FontStyle.Normal, inkMain, TextAnchor.MiddleCenter);
+                p2ScoreLabels[i] = CreateLabel(overlayRoot.transform, fontHeader, "-", new Vector2(colX[2], y), new Vector2(colX[3] - colX[2], rowH), 31, FontStyle.Normal, inkMain, TextAnchor.MiddleCenter);
 
                 // Col 3
                 CreateIconImage(overlayRoot.transform, upperIcons[i], new Vector2(colX[3] + 6f, y), iconSize, inkMain);
-                CreateLabel(overlayRoot.transform, fontMain, upperNames[i], new Vector2(colX[3] + 6f + iconSize + 6f, y), new Vector2(colX[4] - colX[3] - iconSize - 14f, rowH), 22, FontStyle.Bold, inkMain, TextAnchor.MiddleLeft);
+                CreateLabel(overlayRoot.transform, fontMain, upperNames[i], new Vector2(colX[3] + 6f + iconSize + 6f, y), new Vector2(colX[4] - colX[3] - iconSize - 14f, rowH), 23, FontStyle.Normal, inkMain, TextAnchor.MiddleLeft);
             }
 
             // 보너스 행 (Row 7)
             float bonusRowY = -(marginY + (7 + 0.5f) * rowH);
-            p1BonusProgressText = CreateLabel(overlayRoot.transform, fontMain, "Bonus (0/63)", new Vector2(colX[0] + 6f, bonusRowY), new Vector2(colX[1] - colX[0] - 10f, rowH), 21, FontStyle.Bold, bonusTextDark, TextAnchor.MiddleLeft);
-            p2BonusProgressText = CreateLabel(overlayRoot.transform, fontMain, "Bonus (0/63)", new Vector2(colX[3] + 6f, bonusRowY), new Vector2(colX[4] - colX[3] - 10f, rowH), 21, FontStyle.Bold, bonusTextDark, TextAnchor.MiddleLeft);
+            p1BonusProgressText = CreateLabel(overlayRoot.transform, fontMain, "Bonus (0/63)", new Vector2(colX[0] + 6f, bonusRowY), new Vector2(colX[1] - colX[0] - 10f, rowH), 23, FontStyle.Normal, bonusTextDark, TextAnchor.MiddleLeft);
+            p2BonusProgressText = CreateLabel(overlayRoot.transform, fontMain, "Bonus (0/63)", new Vector2(colX[3] + 6f, bonusRowY), new Vector2(colX[4] - colX[3] - 10f, rowH), 23, FontStyle.Normal, bonusTextDark, TextAnchor.MiddleLeft);
 
-            p1ScoreLabels[6] = CreateLabel(overlayRoot.transform, fontHeader, "+35", new Vector2(colX[1], bonusRowY), new Vector2(colX[2] - colX[1], rowH), 24, FontStyle.Bold, bonusScoreGold, TextAnchor.MiddleCenter);
-            p2ScoreLabels[6] = CreateLabel(overlayRoot.transform, fontHeader, "+35", new Vector2(colX[2], bonusRowY), new Vector2(colX[3] - colX[2], rowH), 24, FontStyle.Bold, bonusScoreGold, TextAnchor.MiddleCenter);
+            p1ScoreLabels[6] = CreateLabel(overlayRoot.transform, fontHeader, "+35", new Vector2(colX[1], bonusRowY), new Vector2(colX[2] - colX[1], rowH), 26, FontStyle.Normal, bonusScoreGold, TextAnchor.MiddleCenter);
+            p2ScoreLabels[6] = CreateLabel(overlayRoot.transform, fontHeader, "+35", new Vector2(colX[2], bonusRowY), new Vector2(colX[3] - colX[2], rowH), 26, FontStyle.Normal, bonusScoreGold, TextAnchor.MiddleCenter);
 
             // 하단 섹션 (Row 8..13)
             for (int i = 0; i < 6; i++)
@@ -367,24 +376,24 @@ namespace Tessera.Games.AugmentedYacht
 
                 // Col 0
                 CreateIconImage(overlayRoot.transform, lowerIcons[i], new Vector2(colX[0] + 6f, y), iconSize, inkMain);
-                CreateLabel(overlayRoot.transform, fontMain, lowerNames[i], new Vector2(colX[0] + 6f + iconSize + 6f, y), new Vector2(colX[1] - colX[0] - iconSize - 14f, rowH), 22, FontStyle.Bold, inkMain, TextAnchor.MiddleLeft);
+                CreateLabel(overlayRoot.transform, fontMain, lowerNames[i], new Vector2(colX[0] + 6f + iconSize + 6f, y), new Vector2(colX[1] - colX[0] - iconSize - 14f, rowH), 23, FontStyle.Normal, inkMain, TextAnchor.MiddleLeft);
 
                 // Col 1 & 2
-                p1ScoreLabels[i + 7] = CreateLabel(overlayRoot.transform, fontHeader, "-", new Vector2(colX[1], y), new Vector2(colX[2] - colX[1], rowH), 28, FontStyle.Bold, inkMain, TextAnchor.MiddleCenter);
-                p2ScoreLabels[i + 7] = CreateLabel(overlayRoot.transform, fontHeader, "-", new Vector2(colX[2], y), new Vector2(colX[3] - colX[2], rowH), 28, FontStyle.Bold, inkMain, TextAnchor.MiddleCenter);
+                p1ScoreLabels[i + 7] = CreateLabel(overlayRoot.transform, fontHeader, "-", new Vector2(colX[1], y), new Vector2(colX[2] - colX[1], rowH), 31, FontStyle.Normal, inkMain, TextAnchor.MiddleCenter);
+                p2ScoreLabels[i + 7] = CreateLabel(overlayRoot.transform, fontHeader, "-", new Vector2(colX[2], y), new Vector2(colX[3] - colX[2], rowH), 31, FontStyle.Normal, inkMain, TextAnchor.MiddleCenter);
 
                 // Col 3
                 CreateIconImage(overlayRoot.transform, lowerIcons[i], new Vector2(colX[3] + 6f, y), iconSize, inkMain);
-                CreateLabel(overlayRoot.transform, fontMain, lowerNames[i], new Vector2(colX[3] + 6f + iconSize + 6f, y), new Vector2(colX[4] - colX[3] - iconSize - 14f, rowH), 22, FontStyle.Bold, inkMain, TextAnchor.MiddleLeft);
+                CreateLabel(overlayRoot.transform, fontMain, lowerNames[i], new Vector2(colX[3] + 6f + iconSize + 6f, y), new Vector2(colX[4] - colX[3] - iconSize - 14f, rowH), 23, FontStyle.Normal, inkMain, TextAnchor.MiddleLeft);
             }
 
             // 푸터 행 (Row 14: TOTAL)
             float footerCenterY = -(marginY + (14 + 0.5f) * rowH);
-            CreateLabel(overlayRoot.transform, fontHeader, "TOTAL", new Vector2(colX[0] + 4f, footerCenterY), new Vector2(colX[1] - colX[0] - 8f, rowH), 22, FontStyle.Bold, footerTextGold, TextAnchor.MiddleCenter);
-            CreateLabel(overlayRoot.transform, fontHeader, "TOTAL", new Vector2(colX[3] + 4f, footerCenterY), new Vector2(colX[4] - colX[3] - 8f, rowH), 22, FontStyle.Bold, footerTextGold, TextAnchor.MiddleCenter);
+            CreateLabel(overlayRoot.transform, fontHeader, "TOTAL", new Vector2(colX[0] + 4f, footerCenterY), new Vector2(colX[1] - colX[0] - 8f, rowH), 26, FontStyle.Normal, footerTextGold, TextAnchor.MiddleCenter);
+            CreateLabel(overlayRoot.transform, fontHeader, "TOTAL", new Vector2(colX[3] + 4f, footerCenterY), new Vector2(colX[4] - colX[3] - 8f, rowH), 26, FontStyle.Normal, footerTextGold, TextAnchor.MiddleCenter);
 
-            p1ScoreLabels[13] = CreateLabel(overlayRoot.transform, fontHeader, "0", new Vector2(colX[1], footerCenterY), new Vector2(colX[2] - colX[1], rowH), 34, FontStyle.Bold, footerScoreGold, TextAnchor.MiddleCenter);
-            p2ScoreLabels[13] = CreateLabel(overlayRoot.transform, fontHeader, "0", new Vector2(colX[2], footerCenterY), new Vector2(colX[3] - colX[2], rowH), 34, FontStyle.Bold, footerScoreGold, TextAnchor.MiddleCenter);
+            p1ScoreLabels[13] = CreateLabel(overlayRoot.transform, fontHeader, "0", new Vector2(colX[1], footerCenterY), new Vector2(colX[2] - colX[1], rowH), 37, FontStyle.Normal, footerScoreGold, TextAnchor.MiddleCenter);
+            p2ScoreLabels[13] = CreateLabel(overlayRoot.transform, fontHeader, "0", new Vector2(colX[2], footerCenterY), new Vector2(colX[3] - colX[2], rowH), 37, FontStyle.Normal, footerScoreGold, TextAnchor.MiddleCenter);
         }
 
         private void LateUpdate()
@@ -462,7 +471,7 @@ namespace Tessera.Games.AugmentedYacht
 
         private Text CreateLabel(Transform parent, Font font, string text, Vector2 pos, Vector2 size, int fontSize, FontStyle style, Color color, TextAnchor alignment)
         {
-            GameObject obj = new("Label", typeof(RectTransform), typeof(Text));
+            GameObject obj = new("Label", typeof(RectTransform), typeof(Text), typeof(Shadow));
             obj.layer = DecorationLayer;
             obj.transform.SetParent(parent, false);
 
@@ -482,7 +491,22 @@ namespace Tessera.Games.AugmentedYacht
             txt.horizontalOverflow = HorizontalWrapMode.Overflow;
             txt.verticalOverflow = VerticalWrapMode.Overflow;
             txt.raycastTarget = false;
+
+            // 0.5 볼드 효과: 0.55px 미세 오프셋 섀도우를 텍스트 색상과 동일하게 덧댐
+            Shadow shadow = obj.GetComponent<Shadow>();
+            shadow.effectColor = color;
+            shadow.effectDistance = new Vector2(0.55f, 0f);
+            shadow.useGraphicAlpha = true;
+
             return txt;
+        }
+
+        private static void SetLabelColor(Text label, Color color)
+        {
+            if (label == null) return;
+            label.color = color;
+            Shadow s = label.GetComponent<Shadow>();
+            if (s != null) s.effectColor = color;
         }
 
         public void SetPlayerScore(int playerIndex, ScoreCategory category, int score)
@@ -523,7 +547,7 @@ namespace Tessera.Games.AugmentedYacht
                 if (labels[i] != null)
                 {
                     labels[i].text = data.upperScores[i] >= 0 ? data.upperScores[i].ToString() : "-";
-                    labels[i].color = data.upperScores[i] >= 0 ? inkMain : inkScoreEmpty;
+                    SetLabelColor(labels[i], data.upperScores[i] >= 0 ? inkMain : inkScoreEmpty);
                 }
             }
 
@@ -531,12 +555,12 @@ namespace Tessera.Games.AugmentedYacht
             if (bonusText != null)
             {
                 bonusText.text = $"Bonus ({upperSum}/63)";
-                bonusText.color = upperSum >= 63 ? bonusScoreGold : new Color32(42, 26, 16, 245);
+                SetLabelColor(bonusText, upperSum >= 63 ? bonusScoreGold : new Color32(42, 26, 16, 245));
             }
             if (labels[6] != null)
             {
                 labels[6].text = "+35";
-                labels[6].color = data.hasBonus ? bonusScoreGold : new Color32(150, 125, 105, 160);
+                SetLabelColor(labels[6], data.hasBonus ? bonusScoreGold : new Color32(150, 125, 105, 160));
             }
 
             for (int i = 0; i < 6; i++)
@@ -544,14 +568,14 @@ namespace Tessera.Games.AugmentedYacht
                 if (labels[i + 7] != null)
                 {
                     labels[i + 7].text = data.lowerScores[i] >= 0 ? data.lowerScores[i].ToString() : "-";
-                    labels[i + 7].color = data.lowerScores[i] >= 0 ? inkMain : inkScoreEmpty;
+                    SetLabelColor(labels[i + 7], data.lowerScores[i] >= 0 ? inkMain : inkScoreEmpty);
                 }
             }
 
             if (labels[13] != null)
             {
                 labels[13].text = data.totalScore.ToString();
-                labels[13].color = footerScoreGold;
+                SetLabelColor(labels[13], footerScoreGold);
             }
         }
 

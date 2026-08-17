@@ -1567,10 +1567,19 @@ namespace Tessera.Games.AugmentedYacht
             }
 
             Text text = textObject.GetComponent<Text>();
-            text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            Font font = null;
+#if UNITY_EDITOR
+            font = UnityEditor.AssetDatabase.LoadAssetAtPath<Font>("Assets/Fonts/alagard.ttf")
+                ?? UnityEditor.AssetDatabase.LoadAssetAtPath<Font>("Assets/Fonts/m6x11.ttf");
+#endif
+            text.font = font ?? Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            if (text.font != null && text.font.material != null && text.font.material.mainTexture != null)
+            {
+                text.font.material.mainTexture.filterMode = FilterMode.Point;
+            }
             text.text = value;
             text.fontSize = fontSize;
-            text.fontStyle = FontStyle.Bold;
+            text.fontStyle = FontStyle.Normal;
             text.alignment = alignment;
             text.color = Color.white;
             text.raycastTarget = false;
