@@ -11,7 +11,9 @@ namespace Tessera.Tabletop
     /// - 스노우 글로브 은하수 궤도 회전 파티클: 구슬 내벽을 따라 둥글게 소용돌이치며 반짝이는(Twinkle) 별가루 입자들
     /// - 내부 발광 마나 코어 (Luminous Inner Core): 3차원 볼륨감과 부드러운 숨쉬기 맥동
     /// - 호버링 인터랙션: 과도한 눈부심 없는 은은한 미세 발광(0.10f -> 0.22f) & 수정 구슬 외곽 실루엣을 감싸며 피어오르는 테두리 오라(Rim Aura)
+    /// - 5시 방향 아르누보 팔메트 & 트윈 볼류트 양각 금속 장식 (Palmette Relief Ornament)
     /// </summary>
+    [ExecuteAlways]
     public sealed class RollOrb : MonoBehaviour
     {
         private const int DecorationLayer = 11;
@@ -39,12 +41,47 @@ namespace Tessera.Tabletop
         private readonly Color coreBaseEmission = new Color(0.08f, 0.42f, 0.72f) * 0.75f;
         private readonly Color coreHoverEmission = new Color(0.08f, 0.42f, 0.72f) * 0.75f;
 
-        // 상시 적용 콤팩트 사파이어 후광 컬러
+        // 상시 적용 은은한 사파이어 외곽 후광 컬러
         private readonly Color ambientHaloColor = new(0.12f, 0.55f, 0.95f, 1.0f);
 
         // 하스스톤 스타일 카드 활성화 마나 불꽃 아우라 컬러 (톤온톤)
         private readonly Color hearthstoneFlameColor = new(0.12f, 0.50f, 0.90f, 0.85f);
         private readonly Color hearthstoneCoreFilamentColor = new(0.45f, 0.88f, 1.00f, 1.00f);
+
+        private void Awake()
+        {
+            EnsureGeometry();
+        }
+
+        private void OnEnable()
+        {
+            EnsureGeometry();
+        }
+
+#if UNITY_EDITOR
+        private void OnValidate()
+        {
+            if (!Application.isPlaying)
+            {
+                UnityEditor.EditorApplication.delayCall -= DelayEnsureGeometry;
+                UnityEditor.EditorApplication.delayCall += DelayEnsureGeometry;
+            }
+        }
+
+        private void DelayEnsureGeometry()
+        {
+            if (this == null || gameObject == null) return;
+            EnsureGeometry();
+        }
+#endif
+
+        public void EnsureGeometry()
+        {
+            if (transform.childCount == 0 || transform.Find("Glass_Orb_Root") == null)
+            {
+                BuildGeometry();
+            }
+        }
 
         public static RollOrb Create(Transform parent, Vector3 worldPosition, Quaternion? rotation = null, Vector3? scale = null)
         {
@@ -58,11 +95,6 @@ namespace Tessera.Tabletop
             RollOrb comp = root.AddComponent<RollOrb>();
             comp.BuildGeometry();
             return comp;
-        }
-
-        private void Awake()
-        {
-            BuildGeometry();
         }
 
         public void SetHovered(bool hovered)
@@ -85,16 +117,16 @@ namespace Tessera.Tabletop
             float target = isHovered ? 1f : 0f;
             hoverLerp = Mathf.MoveTowards(hoverLerp, target, Time.deltaTime * 5f);
 
-            // 1. 상시 외곽 후광 (Ambient Halo - 호버 여부와 상관없이 은은하게 상시 발광)
+            // 1. 상시 외곽 후광 (베젤 링 바깥쪽으로만 은은하게 방사되는 옅은 빛)
             if (ambientHaloMaterial != null)
             {
-                float idleBreath = Mathf.Sin(Time.time * 2.0f) * 0.05f;
-                float ambientIntensity = 0.55f + idleBreath + (hoverLerp * 0.15f);
+                float idleBreath = Mathf.Sin(Time.time * 2.0f) * 0.04f;
+                float ambientIntensity = 0.36f + idleBreath + (hoverLerp * 0.12f);
                 if (ambientHaloMaterial.HasProperty("_Intensity"))
                     ambientHaloMaterial.SetFloat("_Intensity", Mathf.Max(0f, ambientIntensity));
             }
 
-            // 2. 호버 시 정적 빛 테두리 아우라 (Static Glowing Aura Ring - 2배 두께)
+            // 2. 호버 시 베젤 테두리 마나 아우라 (베젤 링 외곽으로만 퍼지는 옅은 아우라)
             if (hearthstoneAuraRenderer != null)
             {
                 bool showAura = hoverLerp > 0.01f;
@@ -102,7 +134,7 @@ namespace Tessera.Tabletop
 
                 if (showAura && hearthstoneAuraMaterial != null)
                 {
-                    float auraIntensity = Mathf.Lerp(0.0f, 1.0f, hoverLerp);
+                    float auraIntensity = Mathf.Lerp(0.0f, 0.45f, hoverLerp);
                     if (hearthstoneAuraMaterial.HasProperty("_Intensity"))
                         hearthstoneAuraMaterial.SetFloat("_Intensity", Mathf.Max(0f, auraIntensity));
                 }
@@ -112,13 +144,13 @@ namespace Tessera.Tabletop
             if (orbMaterial != null)
             {
                 if (orbMaterial.HasProperty("_RimIntensity"))
-                    orbMaterial.SetFloat("_RimIntensity", Mathf.Lerp(0.65f, 0.90f, hoverLerp));
+                    orbMaterial.SetFloat("_RimIntensity", Mathf.Lerp(0.65f, 0.85f, hoverLerp));
             }
 
             // 4. 내부 포인트 라이트 (받침대 및 테이블로 은은하게 퍼지는 빛)
             if (orbPointLight != null)
             {
-                orbPointLight.intensity = Mathf.Lerp(0.04f, 0.18f, hoverLerp);
+                orbPointLight.intensity = Mathf.Lerp(0.04f, 0.15f, hoverLerp);
             }
         }
 
@@ -174,23 +206,23 @@ namespace Tessera.Tabletop
             // 1-5. 앤틱 실버 플로럴 브로치 머티리얼 (Antique Silver / White Platinum)
             Material broochSilverMat = CreateMat(litShader, "Orb_BroochSilverMat", new Color(0.88f, 0.91f, 0.95f), 0.92f, 0.88f);
 
-            // 1-6. 상시 외곽 은은한 후광 머티리얼 (Ambient Compact Halo Material)
+            // 1-6. 상시 외곽 은은한 후광 머티리얼 (베젤 링 바깥쪽으로만 옅게 방사)
             Shader outerGlowShader = Shader.Find("DicePoC/OrbOuterGlow") ?? Shader.Find("Universal Render Pipeline/Unlit") ?? litShader;
             ambientHaloMaterial = new Material(outerGlowShader) { name = "Orb_Ambient_Halo_Mat" };
             if (ambientHaloMaterial.HasProperty("_GlowColor")) ambientHaloMaterial.SetColor("_GlowColor", ambientHaloColor);
-            if (ambientHaloMaterial.HasProperty("_InnerRadius")) ambientHaloMaterial.SetFloat("_InnerRadius", 0.67f);
+            if (ambientHaloMaterial.HasProperty("_InnerRadius")) ambientHaloMaterial.SetFloat("_InnerRadius", 0.735f); // 링 외경에 밀착 (내부 차단)
             if (ambientHaloMaterial.HasProperty("_OuterRadius")) ambientHaloMaterial.SetFloat("_OuterRadius", 0.98f);
             if (ambientHaloMaterial.HasProperty("_FalloffPower")) ambientHaloMaterial.SetFloat("_FalloffPower", 2.2f);
-            if (ambientHaloMaterial.HasProperty("_Intensity")) ambientHaloMaterial.SetFloat("_Intensity", 0.60f);
-            if (ambientHaloMaterial.HasProperty("_ShimmerIntensity")) ambientHaloMaterial.SetFloat("_ShimmerIntensity", 0.12f);
+            if (ambientHaloMaterial.HasProperty("_Intensity")) ambientHaloMaterial.SetFloat("_Intensity", 0.38f); // 옅은 강도
+            if (ambientHaloMaterial.HasProperty("_ShimmerIntensity")) ambientHaloMaterial.SetFloat("_ShimmerIntensity", 0.08f);
 
-            // 1-7. 호버 시 정적 빛 테두리 아우라 머티리얼 (Static Glowing Aura Ring - 2배 두께)
+            // 1-7. 호버 시 정적 빛 테두리 아우라 머티리얼 (베젤 링 외곽으로만 퍼지는 옅은 아우라)
             Shader hearthstoneAuraShader = Shader.Find("DicePoC/OrbHearthstoneAura") ?? outerGlowShader;
             hearthstoneAuraMaterial = new Material(hearthstoneAuraShader) { name = "Orb_Hearthstone_Aura_Mat" };
             if (hearthstoneAuraMaterial.HasProperty("_AuraColor")) hearthstoneAuraMaterial.SetColor("_AuraColor", hearthstoneFlameColor);
             if (hearthstoneAuraMaterial.HasProperty("_CoreColor")) hearthstoneAuraMaterial.SetColor("_CoreColor", hearthstoneCoreFilamentColor);
-            if (hearthstoneAuraMaterial.HasProperty("_InnerRadius")) hearthstoneAuraMaterial.SetFloat("_InnerRadius", 0.58f);
-            if (hearthstoneAuraMaterial.HasProperty("_BorderWidth")) hearthstoneAuraMaterial.SetFloat("_BorderWidth", 0.12f);
+            if (hearthstoneAuraMaterial.HasProperty("_InnerRadius")) hearthstoneAuraMaterial.SetFloat("_InnerRadius", 0.735f); // 링 외경에 밀착 (내부 차단)
+            if (hearthstoneAuraMaterial.HasProperty("_BorderWidth")) hearthstoneAuraMaterial.SetFloat("_BorderWidth", 0.10f);
             if (hearthstoneAuraMaterial.HasProperty("_OuterRadius")) hearthstoneAuraMaterial.SetFloat("_OuterRadius", 0.98f);
             if (hearthstoneAuraMaterial.HasProperty("_FalloffPower")) hearthstoneAuraMaterial.SetFloat("_FalloffPower", 1.8f);
             if (hearthstoneAuraMaterial.HasProperty("_Intensity")) hearthstoneAuraMaterial.SetFloat("_Intensity", 0.0f);
@@ -288,21 +320,7 @@ namespace Tessera.Tabletop
             coreSphere.name = "Crystal_Inner_Core";
             SetupPart(coreSphere, orbRoot.transform, Vector3.zero, Vector3.zero, Vector3.one * 0.35f, coreMaterial);
 
-            // 5-3. 상시 외곽 은은한 후광 평면 (Ambient Halo Plane - 스케일 2.20f)
-            GameObject ambientHalo = GameObject.CreatePrimitive(PrimitiveType.Quad);
-            ambientHalo.name = "Orb_Ambient_Halo_Plane";
-            SetupPart(ambientHalo, orbRoot.transform, new Vector3(0f, 0f, 0f), new Vector3(90f, 0f, 0f), new Vector3(2.20f, 2.20f, 1.0f), ambientHaloMaterial);
-            ambientHaloRenderer = ambientHalo.GetComponent<MeshRenderer>();
-            if (ambientHaloRenderer != null) ambientHaloRenderer.enabled = true;
-
-            // 5-4. 호버 시 정적 빛 테두리 아우라 평면 (Static Glowing Border Plane, 2배 두께 확장 스케일 2.70f)
-            hearthstoneAuraObject = GameObject.CreatePrimitive(PrimitiveType.Quad);
-            hearthstoneAuraObject.name = "Orb_Hearthstone_Aura_Plane";
-            SetupPart(hearthstoneAuraObject, orbRoot.transform, new Vector3(0f, 0.005f, 0f), new Vector3(90f, 0f, 0f), new Vector3(2.70f, 2.70f, 1.0f), hearthstoneAuraMaterial);
-            hearthstoneAuraRenderer = hearthstoneAuraObject.GetComponent<MeshRenderer>();
-            if (hearthstoneAuraRenderer != null) hearthstoneAuraRenderer.enabled = false;
-
-            // 5-5. 내부 은은한 포인트 라이트 (묵직한 딥 블루 톤, 절제된 미세 강도)
+            // 5-3. 내부 은은한 포인트 라이트 (묵직한 딥 블루 톤, 절제된 미세 강도)
             GameObject lightObj = new("Orb_PointLight");
             lightObj.transform.SetParent(orbRoot.transform, false);
             orbPointLight = lightObj.AddComponent<Light>();
@@ -312,72 +330,452 @@ namespace Tessera.Tabletop
             orbPointLight.intensity = 0.04f;
             orbPointLight.shadows = LightShadows.None;
 
-            // 6. 구슬을 포근하게 감싸는 큼지막한 스타일라이즈드 대형 나뭇잎 장식 (Chunky Wrapping Leaves)
-            CreateChunkyWrappingLeaves(orbRoot.transform, goldTrimMat);
+            // 6. 카메라 대면 원형 백은 테두리 링 + 덩굴 데코레이션 및 75도 동축 후광/아우라
+            CreateOrnateSilverBezelFrame(orbRoot.transform, broochSilverMat, goldTrimMat);
 
-            // 7. 내부 스노우 글로브 은하수 궤도 파티클 시스템
+            // 7. 4~5시 방향 아르누보 팔메트 & 트윈 볼류트 양각 금속 장식 (Palmette Relief Ornament)
+            CreatePalmetteReliefOrnament(orbRoot.transform, broochSilverMat, goldTrimMat);
+
+            // 8. 내부 스노우 글로브 은하수 궤도 파티클 시스템
             CreateMagicParticles(orbRoot.transform);
 
-            // 8. 마우스 인터랙션을 위한 Sphere Collider 장착
+            // 9. 마우스 인터랙션을 위한 Sphere Collider 장착
             SphereCollider col = gameObject.GetComponent<SphereCollider>();
             if (col == null) col = gameObject.AddComponent<SphereCollider>();
             col.center = new Vector3(0f, 1.50f, 0f);
             col.radius = 1.30f;
         }
 
-        private void CreateChunkyWrappingLeaves(Transform parent, Material leafMat)
+        /// <summary>
+        /// 75도 직교 카메라 시선 축에 맞춘 원형 백은 테두리 링 및 둘레를 감싸는 덩굴/잎사귀 데코레이션, 동축 후광/아우라
+        /// </summary>
+        private void CreateOrnateSilverBezelFrame(Transform parent, Material silverMat, Material goldMat)
         {
-            GameObject leafRoot = new("Orb_Wrapping_Leaves");
-            leafRoot.layer = DecorationLayer;
-            leafRoot.transform.SetParent(parent, false);
+            GameObject bezelRoot = new("Orb_Ornate_Silver_Bezel");
+            bezelRoot.layer = DecorationLayer;
+            bezelRoot.transform.SetParent(parent, false);
+            // 75도 직교 카메라 시선 축에 완벽하게 수직 정렬 (화면에서 정원형 렌더링)
+            bezelRoot.transform.localRotation = Quaternion.Euler(75.0f, 0f, 0f);
+            bezelRoot.transform.localPosition = Vector3.zero;
 
-            // 픽셀 필터에서도 실루엣이 시원하고 또렷하게 읽히는 5개의 대형 월계수 잎사귀 구성
-            // (구슬 R=0.775 둘레를 하단에서 대각선으로 포근하게 감싸 안는 3D 요람 구조)
-            var leafConfigs = new (float azimuthDeg, float elevationDeg, float rollDeg, float length, float width)[]
+            // 0. 베젤 링 바로 뒤에 75도 동축으로 밀착된 후광 및 아우라 Quad 배치
+            // 0-1. 상시 외곽 은은한 후광 평면 (Ambient Halo - 베젤 링 바깥쪽으로만 은은히 방사)
+            GameObject ambientHalo = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            ambientHalo.name = "Orb_Ambient_Halo_Plane";
+            SetupPart(ambientHalo, bezelRoot.transform, new Vector3(0f, 0f, -0.015f), Vector3.zero, new Vector3(2.40f, 2.40f, 1.0f), ambientHaloMaterial);
+            ambientHaloRenderer = ambientHalo.GetComponent<MeshRenderer>();
+            if (ambientHaloRenderer != null) ambientHaloRenderer.enabled = true;
+
+            // 0-2. 호버 시 베젤 테두리 마나 아우라 평면 (Hearthstone Aura Ring - 베젤 링 외곽으로만 퍼지는 옅은 아우라)
+            hearthstoneAuraObject = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            hearthstoneAuraObject.name = "Orb_Hearthstone_Aura_Plane";
+            SetupPart(hearthstoneAuraObject, bezelRoot.transform, new Vector3(0f, 0f, -0.008f), Vector3.zero, new Vector3(2.40f, 2.40f, 1.0f), hearthstoneAuraMaterial);
+            hearthstoneAuraRenderer = hearthstoneAuraObject.GetComponent<MeshRenderer>();
+            if (hearthstoneAuraRenderer != null) hearthstoneAuraRenderer.enabled = false;
+
+            // 1. 메인 3D 원형 튜브 링 (Main Torus Bezel Ring) - 픽셀 필터 투과용 두꺼운 두께
+            GameObject mainRing = new("Bezel_MainRing");
+            mainRing.layer = DecorationLayer;
+            mainRing.transform.SetParent(bezelRoot.transform, false);
+            MeshFilter mf = mainRing.AddComponent<MeshFilter>();
+            mf.sharedMesh = BuildTorusRingMesh(0.782f, 0.1f, 48, 12);
+            MeshRenderer mr = mainRing.AddComponent<MeshRenderer>();
+            if (Application.isPlaying) mr.material = silverMat;
+            else mr.sharedMaterial = silverMat;
+            mr.shadowCastingMode = ShadowCastingMode.TwoSided;
+            mr.receiveShadows = true;
+
+            // 2. 링 둘레를 나선형으로 휘감아 도는 덩굴 가지들 (Spiral Vine Strands)
+            // (10시 방향, 1시 방향, 7시 방향 등 링의 주요 둘레를 교차하며 감싸는 부드러운 아르누보 덩굴)
+            var vineConfigs = new (float startAngleDeg, float sweepDeg, float radialOffset, Material mat)[]
             {
-                ( -30f, -28f,  38f, 0.58f, 0.24f ), // 1. 정면 하단에서 우측으로 올라가는 대형 잎사귀
-                (  35f, -18f,  50f, 0.68f, 0.26f ), // 2. 5시 방향 우하단을 감싸 올라가는 메인 대형 잎사귀
-                (  75f,  12f,  65f, 0.56f, 0.22f ), // 3. 우측 측면 상단을 휘감는 잎사귀
-                ( -75f, -32f, -35f, 0.50f, 0.20f ), // 4. 좌측 하단을 받쳐주는 대형 잎사귀
-                (   5f, -48f,  10f, 0.44f, 0.18f )  // 5. 하단 중심을 받치는 베이스 잎사귀
+                (  45f,  35f,  0.012f, silverMat ), // 1. 상단 우측(1~2시)을 감싸는 은빛 덩굴
+                ( 125f,  40f, -0.010f, silverMat ), // 2. 상단 좌측(10~11시)을 감싸는 은빛 덩굴
+                ( 210f,  38f,  0.012f, goldMat   ), // 3. 하단 좌측(7~8시)을 감싸는 골드 덩굴
+                ( 285f,  32f, -0.010f, silverMat )  // 4. 하단 우측(5~6시) 메인 장식으로 이어지는 덩굴
+            };
+
+            for (int i = 0; i < vineConfigs.Length; i++)
+            {
+                var v = vineConfigs[i];
+                int steps = 6;
+                for (int s = 0; s < steps; s++)
+                {
+                    float t = (float)s / (steps - 1);
+                    float angleDeg = v.startAngleDeg + v.sweepDeg * t;
+                    float angleRad = angleDeg * Mathf.Deg2Rad;
+                    float r = 0.782f + Mathf.Sin(t * Mathf.PI) * v.radialOffset;
+                    float zOffset = Mathf.Cos(t * Mathf.PI) * 0.018f;
+
+                    Vector3 vinePt = new Vector3(Mathf.Cos(angleRad) * r, Mathf.Sin(angleRad) * r, zOffset);
+                    GameObject node = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                    node.name = $"Bezel_VineStrand_{i}_Node_{s}";
+                    SetupPart(node, bezelRoot.transform, vinePt, Vector3.zero, new Vector3(0.076f, 0.076f, 0.076f), v.mat);
+                }
+            }
+
+            // 3. 링 및 덩굴 주변에 피어난 아르누보 미니 잎사귀 및 젬 비드 (Leaves & Beads)
+            var leafConfigs = new (float angleDeg, float rotDeg, float length, float width, Material mat)[]
+            {
+                (  65f,  45f, 0.24f, 0.090f, silverMat ), // 1시 방향 잎사귀
+                ( 145f, -40f, 0.26f, 0.096f, silverMat ), // 10시 방향 잎사귀
+                ( 160f,  20f, 0.20f, 0.080f, goldMat   ), // 9시 방향 골드 미니 잎사귀
+                ( 230f, -30f, 0.24f, 0.090f, goldMat   ), // 8시 방향 골드 잎사귀
+                ( 245f,  40f, 0.20f, 0.080f, silverMat )  // 7시 방향 잎사귀
             };
 
             for (int i = 0; i < leafConfigs.Length; i++)
             {
-                var cfg = leafConfigs[i];
-                float azRad = cfg.azimuthDeg * Mathf.Deg2Rad;
-                float elRad = cfg.elevationDeg * Mathf.Deg2Rad;
+                var l = leafConfigs[i];
+                float rad = l.angleDeg * Mathf.Deg2Rad;
+                Vector3 leafPos = new Vector3(Mathf.Cos(rad) * 0.795f, Mathf.Sin(rad) * 0.795f, 0.012f);
+                Quaternion leafRot = Quaternion.Euler(0f, 0f, l.angleDeg + l.rotDeg);
 
-                // 구면 표면 법선 방향 벡터 계산
-                Vector3 surfaceDir = new Vector3(
-                    Mathf.Sin(azRad) * Mathf.Cos(elRad),
-                    Mathf.Sin(elRad),
-                    -Mathf.Cos(azRad) * Mathf.Cos(elRad)
-                ).normalized;
-
-                // 구슬 표면에 밀착 (R = 0.775)
-                Vector3 leafBasePos = surfaceDir * 0.765f;
-                Quaternion baseRot = Quaternion.LookRotation(surfaceDir, Vector3.up) * Quaternion.Euler(0f, 0f, cfg.rollDeg);
-
-                // 1. 대형 잎사귀 본체 (도톰한 스타일라이즈드 타원체)
                 GameObject leafObj = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                leafObj.name = $"Chunky_Leaf_{i}";
-                // 잎사귀 끝단이 구슬 곡면을 따라 감싸도록 전방으로 살짝 굽힘
-                Quaternion leafRot = baseRot * Quaternion.Euler(18f, 0f, 0f);
-                Vector3 leafCenter = leafBasePos + (leafRot * Vector3.up * (cfg.length * 0.45f));
-                SetupPart(leafObj, leafRoot.transform, leafCenter, leafRot.eulerAngles, new Vector3(cfg.width, cfg.length, 0.08f), leafMat);
-
-                // 2. 잎사귀 중앙 굵은 엽맥 융기 라인 (픽셀 셰이딩에서 확실한 입체감 형성)
-                GameObject ribObj = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-                ribObj.name = $"Chunky_Leaf_Rib_{i}";
-                Vector3 ribCenter = leafBasePos + (leafRot * Vector3.up * (cfg.length * 0.45f)) + (leafRot * Vector3.forward * -0.025f);
-                SetupPart(ribObj, leafRoot.transform, ribCenter, (leafRot * Quaternion.Euler(90f, 0f, 0f)).eulerAngles, new Vector3(0.04f, cfg.length * 0.42f, 0.04f), leafMat);
-
-                // 3. 잎사귀 기저부 앤틱 골드 비드
-                GameObject bead = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                bead.name = $"Chunky_Leaf_BaseBead_{i}";
-                SetupPart(bead, leafRoot.transform, leafBasePos, Vector3.zero, new Vector3(0.09f, 0.09f, 0.09f), leafMat);
+                leafObj.name = $"Bezel_VineLeaf_{i}";
+                SetupPart(leafObj, bezelRoot.transform, leafPos, leafRot.eulerAngles, new Vector3(l.width, l.length, 0.050f), l.mat);
             }
+
+            // 4. 아르누보 S/C 커브 스크롤 장식 (1시·7시·4-5시 방향, 절제된 3곳)
+            //    메인 링(0.1f)과 유사한 두께감으로 구체 위로 감겨 올라오는 튜브
+            AddScrollDecoration(bezelRoot.transform, silverMat, goldMat,
+                anchorAngleDeg: 60f,   pitchDeg: 46f, yawDeltaDeg: -22f, isS: true);   // 1시 방향
+            AddScrollDecoration(bezelRoot.transform, silverMat, goldMat,
+                anchorAngleDeg: 210f,  pitchDeg: 42f, yawDeltaDeg:  18f, isS: false);  // 7시 방향
+            AddScrollDecoration(bezelRoot.transform, silverMat, goldMat,
+                anchorAngleDeg: 130f,  pitchDeg: 34f, yawDeltaDeg: -12f, isS: true,
+                stemScale: 0.88f);     // 4~5시 (팔메트 연결)
+        }
+
+        /// <summary>
+        /// 링 위 지정 각도에서 구면 표면 위로 감겨 올라오는 아르누보 S/C 커브 튜브 스크롤 장식 생성.
+        /// 메인 링 튜브(0.1f)와 조화를 이루는 두께감과 뚜렷한 가시성을 제공합니다.
+        /// </summary>
+        private void AddScrollDecoration(Transform parent, Material silverMat, Material goldMat,
+            float anchorAngleDeg, float pitchDeg, float yawDeltaDeg, bool isS, float stemScale = 1.0f)
+        {
+            // 구슬 반경(0.775) 위로 튜브가 확실히 드러나도록 중심 궤적 반경 설정
+            const float orbR    = 0.855f;  
+            float       tubeR   = 0.085f * stemScale; // 메인 링(0.1f)과 유사한 두께
+            const int   steps   = 28;
+            const int   tubeSeg = 12;
+            string      tag     = anchorAngleDeg < 100f ? "1h" : anchorAngleDeg < 180f ? "45" : "7h";
+
+            float aRad = anchorAngleDeg * Mathf.Deg2Rad;
+
+            // 구면 위 시작 방향 (링 평면, Z=0)
+            Vector3 startDir = new Vector3(Mathf.Cos(aRad), Mathf.Sin(aRad), 0f).normalized;
+
+            // 링 접선 방향: 앵커 점에서 XY 평면 접선
+            Vector3 tangentInPlane = new Vector3(-Mathf.Sin(aRad), Mathf.Cos(aRad), 0f).normalized;
+
+            // pitchDeg: tangentInPlane 축으로 startDir를 회전 → 구슬 앞면(+Z)으로 기어오름
+            Vector3 endDir = Quaternion.AngleAxis(pitchDeg, tangentInPlane) * startDir;
+            // yawDeltaDeg: Z축으로 추가 회전 → 좌우 방향 조정
+            endDir = Quaternion.AngleAxis(yawDeltaDeg, Vector3.forward) * endDir;
+            endDir = endDir.normalized;
+
+            // S/C 커브용 중간 제어 방향 (구면 위 제어점)
+            Vector3 midBase = Vector3.Slerp(startDir, endDir, 0.5f).normalized;
+            Vector3 sideAxis = Vector3.Cross(startDir, endDir).normalized;
+            float   sideBend = isS ? 0.38f : 0.24f;
+            Vector3 midDir   = (midBase + sideAxis * sideBend).normalized;
+
+            // 구면 위 경로 생성 (Quadratic Bezier on Sphere)
+            Vector3[] path = new Vector3[steps];
+            for (int i = 0; i < steps; i++)
+            {
+                float t = (float)i / (steps - 1);
+                Vector3 a = Vector3.Slerp(startDir, midDir, t);
+                Vector3 b = Vector3.Slerp(midDir,   endDir, t);
+                path[i] = Vector3.Slerp(a, b, t).normalized * orbR;
+            }
+
+            // 튜브 메쉬 생성
+            GameObject scrollObj = new($"Scroll_Tube_{tag}");
+            scrollObj.layer = DecorationLayer;
+            scrollObj.transform.SetParent(parent, false);
+            MeshFilter scrollMf = scrollObj.AddComponent<MeshFilter>();
+            scrollMf.sharedMesh = BuildPathTubeMesh(path, tubeR, tubeSeg);
+            MeshRenderer scrollMr = scrollObj.AddComponent<MeshRenderer>();
+            if (Application.isPlaying) scrollMr.material = silverMat;
+            else scrollMr.sharedMaterial = silverMat;
+            scrollMr.shadowCastingMode = ShadowCastingMode.TwoSided;
+            scrollMr.receiveShadows = true;
+
+            // 볼류트 말림 팁: 튜브 끝에서 자연스러운 골드 말림 구체
+            Vector3 tipPos     = path[steps - 1];
+            Vector3 tipTangent = (path[steps - 1] - path[steps - 2]).normalized;
+            Vector3 tipNormal  = Vector3.Cross(tipTangent, tipPos.normalized).normalized;
+            float   vR         = 0.095f * stemScale;
+            GameObject vg1 = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            vg1.name = $"Scroll_{tag}_Volute0";
+            SetupPart(vg1, parent, tipPos + tipNormal * vR * 0.75f,
+                Vector3.zero, Vector3.one * vR, goldMat);
+            GameObject vg2 = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            vg2.name = $"Scroll_{tag}_Volute1";
+            SetupPart(vg2, parent, tipPos + tipNormal * vR * 0.25f - tipTangent * vR * 0.5f,
+                Vector3.zero, Vector3.one * (vR * 0.75f), goldMat);
+        }
+
+        /// <summary>
+        /// 제공된 레퍼런스 이미지 기반 아칸서스/팔메트 양각 조각(Palmette & Twin Spiral Volute Relief) 3D 금속 장식 생성
+        /// - 75도 직교 카메라 뷰 기준 사진 속 4~5시 방향 구면에 완벽 밀착
+        /// - 전체 스케일 1.3배(130%) 확대 적용
+        /// - 중심 방사형 부채꼴 리본 잎사귀 (Center Fan Petals)
+        /// - 좌우 트윈 볼류트 나선 엠블럼 (Twin Spiral Volutes & C-rims)
+        /// - 하단 3단 아칸서스 드롭 팁 (Bottom 3-Tier Drops)
+        /// - 상단 부드러운 크라운 잎사귀 (Upper Crown Arches)
+        /// - 백은(Platinum Silver) 바디 + 앤틱 골드(Gold Trim) 투톤 메탈릭 머티리얼
+        /// </summary>
+        private void CreatePalmetteReliefOrnament(Transform parent, Material silverMat, Material goldMat)
+        {
+            GameObject ornamentRoot = new("Orb_Palmette_Ornament");
+            ornamentRoot.layer = DecorationLayer;
+            ornamentRoot.transform.SetParent(parent, false);
+            // 피벗을 구슬 중심(Vector3.zero)에 고정 → Inspector에서 Rotation 조정 시 구슬 중심 기준으로 공전
+            ornamentRoot.transform.localPosition = Vector3.zero;
+            ornamentRoot.transform.localRotation = Quaternion.identity;
+
+            const float S = 1.30f; // 1.3배 확대 스케일 팩터
+
+            // 75도 직교 카메라 화면 기준 사진 속 4~5시 방향 구면 단위 벡터
+            Vector3 centerDir = new Vector3(0.42f, 0.44f, -0.79f).normalized;
+
+            // 구면 법선 방향 기반 좌표계 (Forward = 구면 밖, Up = 구슬 상단 방향, Right = 우측 방향)
+            Quaternion surfaceBaseRot = Quaternion.LookRotation(centerDir, Vector3.up);
+            Vector3 centerPos = centerDir * 0.770f;
+
+            // 1. 중심 방사형 수렴 코어 보스 (Central Boss Point)
+            GameObject centerBoss = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            centerBoss.name = "Palmette_CenterBoss";
+            SetupPart(centerBoss, ornamentRoot.transform, centerPos, surfaceBaseRot.eulerAngles, new Vector3(0.085f * S, 0.085f * S, 0.045f * S), silverMat);
+
+            // 2. 방사형 부채꼴 리본 잎맥들 (Center Fan Ribbons - 5 Petals)
+            // - 중앙에서 아래/사방으로 방사상으로 뻗어나가는 양각 리본
+            var fanPetals = new (float angleOffset, float length, float width, Material mat)[]
+            {
+                (   0f, 0.38f * S, 0.065f * S, silverMat ), // 중앙 메인 리본
+                ( -18f, 0.35f * S, 0.058f * S, silverMat ), // 좌측 1번 리본
+                (  18f, 0.35f * S, 0.058f * S, silverMat ), // 우측 1번 리본
+                ( -36f, 0.30f * S, 0.050f * S, goldMat   ), // 좌측 2번 골드 리본
+                (  36f, 0.30f * S, 0.050f * S, goldMat   )  // 우측 2번 골드 리본
+            };
+
+            for (int i = 0; i < fanPetals.Length; i++)
+            {
+                var petal = fanPetals[i];
+                Quaternion petalRot = surfaceBaseRot * Quaternion.Euler(0f, 0f, 180f + petal.angleOffset);
+                Vector3 petalPos = centerPos + (petalRot * Vector3.up * (petal.length * 0.45f)) + (centerDir * 0.008f);
+
+                GameObject petalObj = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                petalObj.name = $"Palmette_FanPetal_{i}";
+                SetupPart(petalObj, ornamentRoot.transform, petalPos, petalRot.eulerAngles, new Vector3(petal.width, petal.length, 0.035f * S), petal.mat);
+            }
+
+            // 3. 좌우 트윈 볼류트 스크롤 (Twin Spiral Volutes & C-rims)
+            // - 이미지 속 양옆의 도톰한 원형 나선 엠블럼과 이를 감싸는 C자형 테두리
+            for (int side = -1; side <= 1; side += 2)
+            {
+                string sideName = side < 0 ? "Left" : "Right";
+                Vector3 voluteOffset = (surfaceBaseRot * Vector3.right * (side * 0.18f * S)) + (surfaceBaseRot * Vector3.up * (-0.06f * S));
+                Vector3 volutePos = centerPos + voluteOffset;
+
+                // 3-1. 볼류트 중심 원형 보스 (Inner Eye Disc)
+                GameObject voluteEye = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                voluteEye.name = $"Palmette_VoluteEye_{sideName}";
+                SetupPart(voluteEye, ornamentRoot.transform, volutePos, surfaceBaseRot.eulerAngles, new Vector3(0.11f * S, 0.11f * S, 0.045f * S), silverMat);
+
+                // 3-2. 볼류트 내부 링 (Inner Concentric Ring)
+                GameObject voluteRing = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                voluteRing.name = $"Palmette_VoluteRing_{sideName}";
+                Quaternion ringRot = surfaceBaseRot * Quaternion.Euler(90f, 0f, 0f);
+                SetupPart(voluteRing, ornamentRoot.transform, volutePos + (centerDir * 0.005f), ringRot.eulerAngles, new Vector3(0.14f * S, 0.015f * S, 0.14f * S), goldMat);
+
+                // 3-3. 볼류트 외곽 C자형 스크롤 아치 (Outer Arch Rim)
+                Vector3 archPos = volutePos + (surfaceBaseRot * Vector3.right * (side * 0.06f * S)) + (surfaceBaseRot * Vector3.up * (0.04f * S));
+                GameObject voluteArch = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                voluteArch.name = $"Palmette_VoluteArch_{sideName}";
+                Quaternion archRot = surfaceBaseRot * Quaternion.Euler(0f, 0f, side * 35f);
+                SetupPart(voluteArch, ornamentRoot.transform, archPos, archRot.eulerAngles, new Vector3(0.065f * S, 0.22f * S, 0.038f * S), silverMat);
+            }
+
+            // 4. 하단 3단 아칸서스 드롭 팁 (Bottom 3-Tier Acanthus Drops)
+            // - 아래쪽으로 뻗어나가는 3개의 우아한 눈물방울형 잎사귀 팁
+            var dropTips = new (float offsetX, float offsetY, float rotZ, float length, float width, Material mat)[]
+            {
+                (  0.00f * S, -0.32f * S,   0f, 0.32f * S, 0.085f * S, silverMat ), // 중앙 메인 드롭 팁
+                ( -0.10f * S, -0.28f * S, -22f, 0.24f * S, 0.065f * S, goldMat   ), // 좌측 보조 팁
+                (  0.10f * S, -0.28f * S,  22f, 0.24f * S, 0.065f * S, goldMat   )  // 우측 보조 팁
+            };
+
+            for (int i = 0; i < dropTips.Length; i++)
+            {
+                var drop = dropTips[i];
+                Vector3 dropPos = centerPos + (surfaceBaseRot * Vector3.right * drop.offsetX) + (surfaceBaseRot * Vector3.up * drop.offsetY);
+                Quaternion dropRot = surfaceBaseRot * Quaternion.Euler(0f, 0f, drop.rotZ);
+
+                GameObject dropObj = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                dropObj.name = $"Palmette_BottomDrop_{i}";
+                SetupPart(dropObj, ornamentRoot.transform, dropPos, dropRot.eulerAngles, new Vector3(drop.width, drop.length, 0.038f * S), drop.mat);
+            }
+
+            // 5. 상단 크라운 아치 (Upper Crown Leaves)
+            // - 중심점 상단으로 부드럽게 퍼지는 3갈래의 상단 잎사귀
+            var crownLeaves = new (float rotZ, float length, float width, Material mat)[]
+            {
+                (   0f, 0.26f * S, 0.060f * S, silverMat ), // 중앙 상단 팁
+                ( -28f, 0.22f * S, 0.050f * S, silverMat ), // 좌상단 팁
+                (  28f, 0.22f * S, 0.050f * S, silverMat )  // 우상단 팁
+            };
+
+            for (int i = 0; i < crownLeaves.Length; i++)
+            {
+                var crown = crownLeaves[i];
+                Quaternion crownRot = surfaceBaseRot * Quaternion.Euler(0f, 0f, crown.rotZ);
+                Vector3 crownPos = centerPos + (crownRot * Vector3.up * (crown.length * 0.45f));
+
+                GameObject crownObj = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                crownObj.name = $"Palmette_UpperCrown_{i}";
+                SetupPart(crownObj, ornamentRoot.transform, crownPos, crownRot.eulerAngles, new Vector3(crown.width, crown.length, 0.032f * S), crown.mat);
+            }
+        }
+
+        private static Mesh BuildTorusRingMesh(float mainRadius, float tubeRadius, int segRadial = 48, int segTube = 8)
+        {
+            Mesh mesh = new() { name = "Procedural_Torus_Ring" };
+            int vertCount = (segRadial + 1) * (segTube + 1);
+            Vector3[] vertices = new Vector3[vertCount];
+            Vector3[] normals = new Vector3[vertCount];
+            Vector2[] uvs = new Vector2[vertCount];
+            int[] triangles = new int[segRadial * segTube * 6];
+
+            for (int r = 0; r <= segRadial; r++)
+            {
+                float theta = (float)r / segRadial * Mathf.PI * 2f;
+                float cosTheta = Mathf.Cos(theta);
+                float sinTheta = Mathf.Sin(theta);
+                Vector3 centerOnRing = new(cosTheta * mainRadius, sinTheta * mainRadius, 0f);
+
+                for (int t = 0; t <= segTube; t++)
+                {
+                    float phi = (float)t / segTube * Mathf.PI * 2f;
+                    float cosPhi = Mathf.Cos(phi);
+                    float sinPhi = Mathf.Sin(phi);
+
+                    Vector3 tubeNormal = new(cosTheta * cosPhi, sinTheta * cosPhi, sinPhi);
+                    int idx = r * (segTube + 1) + t;
+                    vertices[idx] = centerOnRing + tubeNormal * tubeRadius;
+                    normals[idx] = tubeNormal;
+                    uvs[idx] = new Vector2((float)r / segRadial, (float)t / segTube);
+                }
+            }
+
+            int triIdx = 0;
+            for (int r = 0; r < segRadial; r++)
+            {
+                for (int t = 0; t < segTube; t++)
+                {
+                    int current = r * (segTube + 1) + t;
+                    int next = (r + 1) * (segTube + 1) + t;
+
+                    triangles[triIdx++] = current;
+                    triangles[triIdx++] = next;
+                    triangles[triIdx++] = current + 1;
+
+                    triangles[triIdx++] = current + 1;
+                    triangles[triIdx++] = next;
+                    triangles[triIdx++] = next + 1;
+                }
+            }
+
+            mesh.vertices = vertices;
+            mesh.normals = normals;
+            mesh.uv = uvs;
+            mesh.triangles = triangles;
+            mesh.RecalculateBounds();
+            return mesh;
+        }
+
+        /// <summary>
+        /// 임의 경로(Vector3 배열) 위를 따라 달리는 3D 튜브 메쉬 생성 (Parallel Transport 프레임)
+        /// </summary>
+        private static Mesh BuildPathTubeMesh(Vector3[] path, float tubeRadius, int tubeSeg)
+        {
+            int n = path.Length;
+            var verts = new List<Vector3>(n * (tubeSeg + 1));
+            var norms = new List<Vector3>(n * (tubeSeg + 1));
+            var uvs   = new List<Vector2>(n * (tubeSeg + 1));
+            var tris  = new List<int>((n - 1) * tubeSeg * 6);
+
+            // 접선 계산
+            Vector3[] tangents = new Vector3[n];
+            for (int i = 0; i < n; i++)
+            {
+                if      (i == 0)     tangents[i] = (path[1] - path[0]).normalized;
+                else if (i == n - 1) tangents[i] = (path[n - 1] - path[n - 2]).normalized;
+                else                 tangents[i] = (path[i + 1] - path[i - 1]).normalized;
+            }
+
+            // Parallel Transport: 초기 법선 벡터 설정
+            Vector3 initNorm = Vector3.Cross(tangents[0], Vector3.up);
+            if (initNorm.sqrMagnitude < 0.001f)
+                initNorm = Vector3.Cross(tangents[0], Vector3.right);
+            initNorm = initNorm.normalized;
+
+            Vector3[] frameN = new Vector3[n];
+            frameN[0] = initNorm;
+            for (int i = 1; i < n; i++)
+            {
+                Vector3 c = Vector3.Cross(tangents[i - 1], tangents[i]);
+                if (c.sqrMagnitude < 0.0001f)
+                {
+                    frameN[i] = frameN[i - 1];
+                }
+                else
+                {
+                    float angle = Mathf.Asin(Mathf.Clamp(c.magnitude, 0f, 1f)) * Mathf.Rad2Deg;
+                    frameN[i] = Quaternion.AngleAxis(angle, c.normalized) * frameN[i - 1];
+                }
+            }
+
+            // 버텍스 생성
+            for (int i = 0; i < n; i++)
+            {
+                float   u = (float)i / (n - 1);
+                Vector3 T = tangents[i];
+                Vector3 N = frameN[i].normalized;
+                Vector3 B = Vector3.Cross(T, N).normalized;
+
+                for (int j = 0; j <= tubeSeg; j++)
+                {
+                    float   a   = (float)j / tubeSeg * Mathf.PI * 2f;
+                    Vector3 dir = N * Mathf.Cos(a) + B * Mathf.Sin(a);
+                    verts.Add(path[i] + dir * tubeRadius);
+                    norms.Add(dir);
+                    uvs.Add(new Vector2(u, (float)j / tubeSeg));
+                }
+            }
+
+            // 트라이앵글 생성
+            int ring = tubeSeg + 1;
+            for (int i = 0; i < n - 1; i++)
+            {
+                for (int j = 0; j < tubeSeg; j++)
+                {
+                    int a = i * ring + j,  b = a + 1;
+                    int c2 = (i + 1) * ring + j, d = c2 + 1;
+                    tris.AddRange(new[] { a, c2, b, b, c2, d });
+                }
+            }
+
+            Mesh mesh = new() { name = "Procedural_Path_Tube" };
+            mesh.SetVertices(verts);
+            mesh.SetNormals(norms);
+            mesh.SetTriangles(tris, 0);
+            mesh.SetUVs(0, uvs);
+            mesh.RecalculateBounds();
+            return mesh;
         }
 
         private void CreateMagicParticles(Transform parent)
@@ -513,7 +911,8 @@ namespace Tessera.Tabletop
             MeshRenderer mr = obj.GetComponent<MeshRenderer>();
             if (mr != null)
             {
-                mr.material = mat;
+                if (Application.isPlaying) mr.material = mat;
+                else mr.sharedMaterial = mat;
                 mr.shadowCastingMode = ShadowCastingMode.TwoSided;
                 mr.receiveShadows = true;
             }

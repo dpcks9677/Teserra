@@ -59,11 +59,13 @@ namespace Tessera.Games.AugmentedYacht
         private AugmentCardTray augmentCardTray;
         private RollOrb rollOrb;
         private RerollCounterBar rerollCounterBar;
+        private HourglassTimer hourglassTimer;
 
         public ParchmentScoreSheet ScoreSheet => parchmentScoreSheet;
         public AugmentCardTray CardTray => augmentCardTray;
         public RollOrb RollOrb => rollOrb;
         public RerollCounterBar RerollCounter => rerollCounterBar;
+        public HourglassTimer Hourglass => hourglassTimer;
 
         private Coroutine rollRoutine;
         private Coroutine keepRoutine;
@@ -222,6 +224,12 @@ namespace Tessera.Games.AugmentedYacht
                 rerollCounterBar.BuildGeometry();
                 rerollCounterBar.SetRollsRemaining(3, 3);
             }
+
+            if (hourglassTimer == null) hourglassTimer = FindFirstObjectByType<HourglassTimer>();
+            if (hourglassTimer != null)
+            {
+                hourglassTimer.BuildGeometry();
+            }
         }
 
         private void EnsureDiceMaterials()
@@ -328,6 +336,11 @@ namespace Tessera.Games.AugmentedYacht
             ApplyTopDownCamera();
             ConfigureLighting();
             SyncTrayVisualMat();
+            if (parchmentScoreSheet != null)
+            {
+                parchmentScoreSheet.EnsureStructure();
+                parchmentScoreSheet.RefreshAllScores();
+            }
             editableLayoutBuilt = true;
         }
 
@@ -660,6 +673,12 @@ namespace Tessera.Games.AugmentedYacht
             SetRollInteraction(false);
             hoveredDieIndex = -1;
             rollIndex++;
+
+            // 첫 굴림 / 턴 시작 시 모래시계 타이머 자동 가동 (60초)
+            if (hourglassTimer != null && !hourglassTimer.IsRunning && !hourglassTimer.IsFlipping)
+            {
+                hourglassTimer.StartTimer(60f);
+            }
 
             // 1. 결정론적 타겟 눈 생성 (1~6)
             for (int i = 0; i < diceCount; i++)
@@ -1234,7 +1253,7 @@ namespace Tessera.Games.AugmentedYacht
             }
 
             // 6. Inkwell and Quill
-            Transform inkwell = layoutRoot.Find("3D Antique Inkwell and Quill");
+            Transform inkwell = layoutRoot.Find("3D Inkwell and Quill Decoration");
             if (inkwell == null) CreateInkwellAndQuill();
 
             // 7. Paperweight
@@ -1269,6 +1288,20 @@ namespace Tessera.Games.AugmentedYacht
             {
                 rollOrb.BuildGeometry();
             }
+
+            // 10. Hourglass Timer
+            if (hourglassTimer == null)
+            {
+                hourglassTimer = layoutRoot.GetComponentInChildren<HourglassTimer>() ?? FindFirstObjectByType<HourglassTimer>();
+            }
+            if (hourglassTimer == null)
+            {
+                CreateHourglassTimer();
+            }
+            else
+            {
+                hourglassTimer.BuildGeometry();
+            }
         }
 
         private void BuildTableLayout()
@@ -1276,7 +1309,7 @@ namespace Tessera.Games.AugmentedYacht
             // 기존 layoutRoot 직계 자식 정리 (중복 생성 방지)
             if (layoutRoot != null)
             {
-                string[] cleanupKeywords = { "Paper", "Score Sheet", "Layered Parchment", "Game Info", "Burgundy", "3D Wood Planks Table", "3D Fabric Runner", "Medieval Wood Planks Table", "Emerald Wide Runner", "Emerald Ribbon Runner", "Solid Burgundy Game Mat", "Augment Card Tray", "Stone Augment Card Tray", "Roll Orb", "Reroll Counter Bar", "Inkwell", "Quill", "Paperweight" };
+                string[] cleanupKeywords = { "Paper", "Score Sheet", "Layered Parchment", "Game Info", "Burgundy", "3D Wood Planks Table", "3D Fabric Runner", "Medieval Wood Planks Table", "Emerald Wide Runner", "Emerald Ribbon Runner", "Solid Burgundy Game Mat", "Augment Card Tray", "Stone Augment Card Tray", "Roll Orb", "Reroll Counter Bar", "Inkwell", "Quill", "Paperweight", "Hourglass" };
                 List<GameObject> directChildrenToDelete = new();
                 for (int i = 0; i < layoutRoot.childCount; i++)
                 {
@@ -1323,6 +1356,17 @@ namespace Tessera.Games.AugmentedYacht
 
             // Layer 9 (Tray Bottom-Right): 주사위 트레이 하단 우측 3D 스타일라이즈드 마법 수정구 롤 오브젝트
             CreateRollOrb();
+
+            // Layer 10 (Tray Top): 주사위 트레이 상단 3D 스타일라이즈드 앤틱 모래시계 1분 타이머
+            CreateHourglassTimer();
+        }
+
+        private void CreateHourglassTimer()
+        {
+            Vector3 timerPos = new Vector3(-4.0f, 0.12f, 5.80f);
+            Quaternion timerRot = Quaternion.Euler(0f, -40f, 0f);
+            Vector3 timerScale = Vector3.one * 0.95f;
+            hourglassTimer = HourglassTimer.Create(layoutRoot, timerPos, timerRot, timerScale);
         }
 
         private void CreateRerollCounterBar()

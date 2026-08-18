@@ -457,7 +457,7 @@ namespace Tessera.Games.AugmentedYacht
 
             // 2. Row 0: Header Band (CATEGORIES, P1, P2) - 빈 칸 없이 1:1 완벽 통합
             CreateBox(overlayObj.transform, "Header_Band", new Vector2(u0, VBottom(0)), new Vector2(u3, VTop(0)), Vector2.zero, Vector2.zero, headerBandColor);
-            CreateLabel(overlayObj.transform, "Header_Categories", fontHeader, "CATEGORIES", new Vector2(u0, VBottom(0)), new Vector2(u1, VTop(0)), new Vector2(8f, 0f), new Vector2(-4f, 0f), 24, FontStyle.Normal, headerTextGold, TextAnchor.MiddleLeft);
+            CreateLabel(overlayObj.transform, "Header_Categories", fontHeader, "CATEGORIES", new Vector2(u0, VBottom(0)), new Vector2(u1, VTop(0)), new Vector2(16f, 0f), new Vector2(-4f, 0f), 24, FontStyle.Normal, headerTextGold, TextAnchor.MiddleLeft);
             CreateLabel(overlayObj.transform, "Header_P1", fontHeader, "P1", new Vector2(u1, VBottom(0)), new Vector2(u2, VTop(0)), Vector2.zero, Vector2.zero, 26, FontStyle.Normal, playerHeaderGold, TextAnchor.MiddleCenter);
             CreateLabel(overlayObj.transform, "Header_P2", fontHeader, "P2", new Vector2(u2, VBottom(0)), new Vector2(u3, VTop(0)), Vector2.zero, Vector2.zero, 26, FontStyle.Normal, playerHeaderGold, TextAnchor.MiddleCenter);
 
@@ -478,7 +478,7 @@ namespace Tessera.Games.AugmentedYacht
 
                 // Col 0: 아이콘 + 족보명
                 CreateIcon(overlayObj.transform, upperIcons[i], new Vector2(u0, VBottom(r)), new Vector2(u1, VTop(r)), 22f, inkMain);
-                CreateLabel(overlayObj.transform, $"Label_Upper_{i}", fontMain, upperNames[i], new Vector2(u0, VBottom(r)), new Vector2(u1, VTop(r)), new Vector2(32f, 0f), new Vector2(-4f, 0f), 24, FontStyle.Normal, inkMain, TextAnchor.MiddleLeft);
+                CreateLabel(overlayObj.transform, $"Label_Upper_{i}", fontMain, upperNames[i], new Vector2(u0, VBottom(r)), new Vector2(u1, VTop(r)), new Vector2(44f, 0f), new Vector2(-4f, 0f), 24, FontStyle.Normal, inkMain, TextAnchor.MiddleLeft);
 
                 // Col 1 & 2: 점수 슬롯 라벨
                 p1ScoreLabels[i] = CreateLabel(overlayObj.transform, $"P1_Score_Label_{i}", fontHeader, "-", new Vector2(u1, VBottom(r)), new Vector2(u2, VTop(r)), Vector2.zero, Vector2.zero, 28, FontStyle.Normal, inkMain, TextAnchor.MiddleCenter);
@@ -487,7 +487,7 @@ namespace Tessera.Games.AugmentedYacht
 
             // 4. Row 7: Bonus Row
             CreateBox(overlayObj.transform, "Bonus_Band", new Vector2(u0, VBottom(7)), new Vector2(u3, VTop(7)), Vector2.zero, Vector2.zero, bonusBandColor);
-            p1BonusProgressText = CreateLabel(overlayObj.transform, "Bonus_Progress_Text", fontMain, "Bonus (0/63)", new Vector2(u0, VBottom(7)), new Vector2(u1, VTop(7)), new Vector2(8f, 0f), new Vector2(-4f, 0f), 23, FontStyle.Normal, bonusTextDark, TextAnchor.MiddleLeft);
+            p1BonusProgressText = CreateLabel(overlayObj.transform, "Bonus_Progress_Text", fontMain, "Bonus (0/63)", new Vector2(u0, VBottom(7)), new Vector2(u1, VTop(7)), new Vector2(16f, 0f), new Vector2(-4f, 0f), 23, FontStyle.Normal, bonusTextDark, TextAnchor.MiddleLeft);
             p1ScoreLabels[6] = CreateLabel(overlayObj.transform, "P1_Score_Label_6", fontHeader, "+35", new Vector2(u1, VBottom(7)), new Vector2(u2, VTop(7)), Vector2.zero, Vector2.zero, 26, FontStyle.Normal, bonusScoreGold, TextAnchor.MiddleCenter);
             p2ScoreLabels[6] = CreateLabel(overlayObj.transform, "P2_Score_Label_6", fontHeader, "+35", new Vector2(u2, VBottom(7)), new Vector2(u3, VTop(7)), Vector2.zero, Vector2.zero, 26, FontStyle.Normal, bonusScoreGold, TextAnchor.MiddleCenter);
 
@@ -502,7 +502,7 @@ namespace Tessera.Games.AugmentedYacht
 
                 // Col 0: 아이콘 + 족보명
                 CreateIcon(overlayObj.transform, lowerIcons[i], new Vector2(u0, VBottom(r)), new Vector2(u1, VTop(r)), 22f, inkMain);
-                CreateLabel(overlayObj.transform, $"Label_Lower_{i}", fontMain, lowerNames[i], new Vector2(u0, VBottom(r)), new Vector2(u1, VTop(r)), new Vector2(32f, 0f), new Vector2(-4f, 0f), 24, FontStyle.Normal, inkMain, TextAnchor.MiddleLeft);
+                CreateLabel(overlayObj.transform, $"Label_Lower_{i}", fontMain, lowerNames[i], new Vector2(u0, VBottom(r)), new Vector2(u1, VTop(r)), new Vector2(44f, 0f), new Vector2(-4f, 0f), 24, FontStyle.Normal, inkMain, TextAnchor.MiddleLeft);
 
                 // Col 1 & 2: 점수 슬롯 라벨
                 p1ScoreLabels[i + 7] = CreateLabel(overlayObj.transform, $"P1_Score_Label_{i + 7}", fontHeader, "-", new Vector2(u1, VBottom(r)), new Vector2(u2, VTop(r)), Vector2.zero, Vector2.zero, 28, FontStyle.Normal, inkMain, TextAnchor.MiddleCenter);
@@ -511,7 +511,7 @@ namespace Tessera.Games.AugmentedYacht
 
             // 6. Row 14: Footer Band (TOTAL) - 푸터 밴드 내에 TOTAL 및 점수 완벽 통합
             CreateBox(overlayObj.transform, "Footer_Band", new Vector2(u0, VBottom(14)), new Vector2(u3, VTop(14)), Vector2.zero, Vector2.zero, footerBandColor);
-            CreateLabel(overlayObj.transform, "Footer_Total", fontHeader, "TOTAL", new Vector2(u0, VBottom(14)), new Vector2(u1, VTop(14)), new Vector2(8f, 0f), new Vector2(-4f, 0f), 26, FontStyle.Normal, footerTextGold, TextAnchor.MiddleLeft);
+            CreateLabel(overlayObj.transform, "Footer_Total", fontHeader, "TOTAL", new Vector2(u0, VBottom(14)), new Vector2(u1, VTop(14)), new Vector2(16f, 0f), new Vector2(-4f, 0f), 26, FontStyle.Normal, footerTextGold, TextAnchor.MiddleLeft);
             p1ScoreLabels[13] = CreateLabel(overlayObj.transform, "P1_Score_Label_13", fontHeader, "0", new Vector2(u1, VBottom(14)), new Vector2(u2, VTop(14)), Vector2.zero, Vector2.zero, 32, FontStyle.Normal, footerScoreGold, TextAnchor.MiddleCenter);
             p2ScoreLabels[13] = CreateLabel(overlayObj.transform, "P2_Score_Label_13", fontHeader, "0", new Vector2(u2, VBottom(14)), new Vector2(u3, VTop(14)), Vector2.zero, Vector2.zero, 32, FontStyle.Normal, footerScoreGold, TextAnchor.MiddleCenter);
         }
@@ -542,7 +542,7 @@ namespace Tessera.Games.AugmentedYacht
             rect.anchorMin = new Vector2(anchorMin.x, (anchorMin.y + anchorMax.y) * 0.5f);
             rect.anchorMax = new Vector2(anchorMin.x, (anchorMin.y + anchorMax.y) * 0.5f);
             rect.pivot = new Vector2(0f, 0.5f);
-            rect.anchoredPosition = new Vector2(8f, 0f);
+            rect.anchoredPosition = new Vector2(16f, 0f);
             rect.sizeDelta = new Vector2(size, size);
 
             Image img = obj.GetComponent<Image>();

@@ -17,8 +17,9 @@ namespace Tessera.EditorTools
                 Debug.LogWarning("플레이 모드 중에는 에디터 레이아웃 재구성을 실행할 수 없습니다.");
                 return;
             }
-            // 1. Hierarchy 상의 모든 종이 및 구버전 오브젝트 영구 삭제
-            string[] targets = { "Paper", "Score Sheet", "Game Info", "Burgundy", "Medieval Wood Planks Table", "Emerald Wide Runner", "Emerald Ribbon Runner" };
+
+            // 1. Hierarchy 상의 구버전 종이 및 2D UI 오브젝트 영구 삭제
+            string[] targets = { "Paper", "Game Info", "Burgundy", "Medieval Wood Planks Table", "Emerald Wide Runner", "Emerald Ribbon Runner", "Inkwell", "Quill" };
             GameObject[] allObjects = Resources.FindObjectsOfTypeAll<GameObject>();
             List<GameObject> toDelete = new();
 
@@ -43,7 +44,29 @@ namespace Tessera.EditorTools
                 }
             }
 
-            // 2. AugmentedYachtController 재구성
+            // 2. Full Field World Camera를 게임 실행 시와 동일한 75도 직교 뷰로 동기화
+            GameObject camObj = GameObject.Find("Full Field World Camera");
+            if (camObj != null)
+            {
+                Camera cam = camObj.GetComponent<Camera>();
+                if (cam != null)
+                {
+                    Undo.RecordObject(camObj.transform, "Align Camera to 75 deg Game View");
+                    Undo.RecordObject(cam, "Set Orthographic Camera");
+                    camObj.transform.position = new Vector3(-0.39f, 11.5f, -3.1f);
+                    camObj.transform.rotation = Quaternion.Euler(75.0f, 0f, 0f);
+                    cam.orthographic = true;
+                    cam.orthographicSize = 8.2f;
+                    cam.nearClipPlane = 0.1f;
+                    cam.farClipPlane = 40f;
+                    cam.clearFlags = CameraClearFlags.SolidColor;
+                    cam.backgroundColor = new Color(0.06f, 0.045f, 0.04f);
+                    EditorUtility.SetDirty(camObj);
+                    EditorUtility.SetDirty(cam);
+                }
+            }
+
+            // 3. AugmentedYachtController 레이아웃 재구성 (모래시계, 족보 시트 및 족보 UI 아이템 일괄 생성)
             AugmentedYachtController controller = Object.FindFirstObjectByType<AugmentedYachtController>();
             if (controller == null)
             {
@@ -55,7 +78,9 @@ namespace Tessera.EditorTools
             controller.RebuildLayoutMenu();
             EditorUtility.SetDirty(controller.gameObject);
             EditorSceneManager.MarkSceneDirty(controller.gameObject.scene);
-            Debug.Log("🎲 종이 오브젝트 영구 제거 및 3D 원목 테이블 레이아웃 재구성이 완료되었습니다!");
+            EditorSceneManager.SaveScene(controller.gameObject.scene);
+            AssetDatabase.SaveAssets();
+            Debug.Log("🎲 족보 아이템, 3D 모래시계, 깃털 펜 및 75도 게임 뷰 레이아웃 재구성 및 씬 저장이 완료되었습니다!");
         }
     }
 }
