@@ -77,7 +77,7 @@ namespace Tessera.Tabletop
             // 바닥과 완벽히 직교/수평을 이루는 기본 로테이션 (Yaw -40도)
             Quaternion defaultRot = Quaternion.Euler(0f, -40f, 0f);
             root.transform.rotation = rotation ?? defaultRot;
-            root.transform.localScale = scale ?? (Vector3.one * 0.95f);
+            root.transform.localScale = scale ?? (Vector3.one * 1.1f);
 
             HourglassTimer timer = root.AddComponent<HourglassTimer>();
             timer.BuildGeometry();

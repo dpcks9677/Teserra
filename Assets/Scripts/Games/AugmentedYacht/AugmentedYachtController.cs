@@ -69,7 +69,6 @@ namespace Tessera.Games.AugmentedYacht
 
         private Coroutine rollRoutine;
         private Coroutine keepRoutine;
-        private Button rollButton;
         private Button keyLightToggleButton;
         private int rollIndex;
         private bool hasCompletedRoll;
@@ -921,24 +920,40 @@ namespace Tessera.Games.AugmentedYacht
                 UpdateStatusText();
             }
 
+            if (hitOrb && mouse.leftButton.wasPressedThisFrame)
+            {
+                OnRollOrbClicked();
+            }
+
             if (hitIndex >= 0 && mouse.leftButton.wasPressedThisFrame)
             {
                 ToggleKeep(hitIndex);
             }
         }
 
-        private void SetRollInteraction(bool interactable)
+        private void OnRollOrbClicked()
         {
-            if (rollButton != null) rollButton.interactable = interactable;
-            UpdateRollButton();
+            if (rollRoutine != null || isArranging) return;
+            if (keptDice.Count > 0 && keptDice.TrueForAll(kept => kept))
+            {
+                UpdateStatusText("모든 주사위가 킵되어 있습니다.");
+                return;
+            }
+
+            if (rollOrb != null)
+            {
+                rollOrb.TriggerClickFeedback();
+            }
+
+            RollDice();
         }
 
-        private void UpdateRollButton()
+        private void SetRollInteraction(bool interactable)
         {
-            if (rollButton == null) return;
-            Text label = rollButton.GetComponentInChildren<Text>();
-            if (label == null) return;
-            label.text = $"ROLL {diceCount} DICE";
+            if (rollOrb != null)
+            {
+                rollOrb.SetInteractable(interactable);
+            }
         }
 
         private void UpdateStatusText(string message = null)
@@ -952,7 +967,7 @@ namespace Tessera.Games.AugmentedYacht
             string valuesSummary = hasCompletedRoll ? $" [ {string.Join(", ", diceValues)} ]" : "";
 
             statusText.text = string.IsNullOrEmpty(message)
-                ? $"{internalResolution.x} x {internalResolution.y}  |  {interaction}{valuesSummary}  |  SPACE: ROLL"
+                ? $"{internalResolution.x} x {internalResolution.y}  |  {interaction}{valuesSummary}  |  ORB / SPACE: ROLL"
                 : $"{message}  |  {interaction}{valuesSummary}";
         }
 
@@ -1099,7 +1114,6 @@ namespace Tessera.Games.AugmentedYacht
             Button resolutionButton = GameObject.Find("Debug")?.GetComponent<Button>();
             keyLightToggleButton = GameObject.Find("KeyLightToggle")?.GetComponent<Button>();
             GameObject quantizeObject = GameObject.Find("Quantize");
-            rollButton = GameObject.Find("Roll Dice")?.GetComponent<Button>();
             if (resolutionButton != null)
             {
                 resolutionButton.onClick.RemoveAllListeners();
@@ -1121,12 +1135,6 @@ namespace Tessera.Games.AugmentedYacht
                 if (label != null) label.text = $"Light: {keyLightPresets[currentKeyLightPresetIndex].name}";
             }
             if (quantizeObject != null) quantizeObject.SetActive(false);
-            if (rollButton != null)
-            {
-                rollButton.onClick.RemoveAllListeners();
-                rollButton.onClick.AddListener(ResetAndRollDice);
-            }
-            UpdateRollButton();
         }
 
         private void BuildWorld()
@@ -1363,22 +1371,22 @@ namespace Tessera.Games.AugmentedYacht
 
         private void CreateHourglassTimer()
         {
-            Vector3 timerPos = new Vector3(-4.0f, 0.12f, 5.80f);
+            Vector3 timerPos = new Vector3(-3.5f, 0.12f, 5.73f);
             Quaternion timerRot = Quaternion.Euler(0f, -40f, 0f);
-            Vector3 timerScale = Vector3.one * 0.95f;
+            Vector3 timerScale = Vector3.one * 1.1f;
             hourglassTimer = HourglassTimer.Create(layoutRoot, timerPos, timerRot, timerScale);
         }
 
         private void CreateRerollCounterBar()
         {
-            Vector3 counterPos = new Vector3(-2.68f, 0.12f, -6.15f);
+            Vector3 counterPos = new Vector3(0.53f, 0.12f, 5.73f);
             Vector3 counterScale = Vector3.one * 1.30f;
             rerollCounterBar = RerollCounterBar.Create(layoutRoot, counterPos, null, counterScale);
         }
 
         private void CreateRollOrb()
         {
-            Vector3 orbPos = new Vector3(2.25f, 0.12f, -6.30f);
+            Vector3 orbPos = new Vector3(-0.35f, 0.12f, -6.30f);
             Vector3 orbScale = Vector3.one * 1.35f;
             rollOrb = RollOrb.Create(layoutRoot, orbPos, null, orbScale);
         }
@@ -1781,7 +1789,6 @@ namespace Tessera.Games.AugmentedYacht
 
             CreateButton(canvasObject.transform, "Debug", "960 / 640", new Vector2(18f, -18f), new Vector2(130f, 38f), new Vector2(0f, 1f), ToggleResolution);
             keyLightToggleButton = CreateButton(canvasObject.transform, "KeyLightToggle", $"Light: {keyLightPresets[currentKeyLightPresetIndex].name}", new Vector2(158f, -18f), new Vector2(165f, 38f), new Vector2(0f, 1f), ToggleKeyLightPreset);
-            rollButton = CreateButton(canvasObject.transform, "Roll Dice", "ROLL 5 DICE", new Vector2(0f, 28f), new Vector2(300f, 64f), new Vector2(0.5f, 0f), ResetAndRollDice);
 
             statusText = CreateText(canvasObject.transform, "Status", "", new Vector2(0f, -20f), new Vector2(600f, 30f), new Vector2(0.5f, 1f), 15, TextAnchor.MiddleCenter);
             Canvas.ForceUpdateCanvases();
@@ -1824,7 +1831,7 @@ namespace Tessera.Games.AugmentedYacht
             rect.sizeDelta = size;
 
             Image image = buttonObject.GetComponent<Image>();
-            image.color = name == "Roll Dice" ? new Color(0.9f, 0.2f, 0.16f, 0.96f) : new Color(0.06f, 0.4f, 0.46f, 0.94f);
+            image.color = new Color(0.06f, 0.4f, 0.46f, 0.94f);
 
             Button button = buttonObject.GetComponent<Button>();
             button.targetGraphic = image;
@@ -1834,7 +1841,7 @@ namespace Tessera.Games.AugmentedYacht
             button.colors = colors;
             button.onClick.AddListener(action);
 
-            CreateText(buttonObject.transform, "Label", label, Vector2.zero, Vector2.zero, new Vector2(0.5f, 0.5f), name == "Roll Dice" ? 22 : 15, TextAnchor.MiddleCenter, true);
+            CreateText(buttonObject.transform, "Label", label, Vector2.zero, Vector2.zero, new Vector2(0.5f, 0.5f), 15, TextAnchor.MiddleCenter, true);
             return button;
         }
 

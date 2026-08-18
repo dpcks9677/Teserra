@@ -20,7 +20,14 @@ namespace Tessera.Tabletop
 
         [Header("Hover & Glow State")]
         [SerializeField] private bool isHovered;
+        [SerializeField] private bool isInteractable = true;
         private float hoverLerp;
+        private float clickFlashLerp;
+        private Coroutine clickFeedbackRoutine;
+
+        public bool IsHovered => isHovered;
+        public bool IsInteractable => isInteractable;
+        public event Action OnClicked;
 
         private Material orbMaterial;
         private Material coreMaterial;
@@ -102,6 +109,47 @@ namespace Tessera.Tabletop
             isHovered = hovered;
         }
 
+        public void SetInteractable(bool interactable)
+        {
+            isInteractable = interactable;
+        }
+
+        public void TriggerClickFeedback()
+        {
+            OnClicked?.Invoke();
+
+            if (!gameObject.activeInHierarchy) return;
+            if (clickFeedbackRoutine != null)
+            {
+                StopCoroutine(clickFeedbackRoutine);
+            }
+            clickFeedbackRoutine = StartCoroutine(ClickFeedbackAnimationRoutine());
+        }
+
+        private System.Collections.IEnumerator ClickFeedbackAnimationRoutine()
+        {
+            clickFlashLerp = 1f;
+
+            // 마법 파티클 버스트 효과
+            if (magicParticles != null)
+            {
+                magicParticles.Emit(20);
+            }
+
+            // 0.35초 동안 빛과 아우라가 부드럽게 감쇠
+            float elapsed = 0f;
+            float duration = 0.35f;
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                clickFlashLerp = Mathf.Clamp01(1f - (elapsed / duration));
+                yield return null;
+            }
+
+            clickFlashLerp = 0f;
+            clickFeedbackRoutine = null;
+        }
+
         private void OnMouseEnter()
         {
             isHovered = true;
@@ -114,14 +162,16 @@ namespace Tessera.Tabletop
 
         private void Update()
         {
-            float target = isHovered ? 1f : 0f;
-            hoverLerp = Mathf.MoveTowards(hoverLerp, target, Time.deltaTime * 5f);
+            float target = (isHovered && isInteractable) ? 1f : 0f;
+            hoverLerp = Mathf.MoveTowards(hoverLerp, target, Time.deltaTime * 6f);
+
+            float totalGlow = Mathf.Clamp01(hoverLerp + clickFlashLerp * 1.5f);
 
             // 1. 상시 외곽 후광 (베젤 링 바깥쪽으로만 은은하게 방사되는 옅은 빛)
             if (ambientHaloMaterial != null)
             {
                 float idleBreath = Mathf.Sin(Time.time * 2.0f) * 0.04f;
-                float ambientIntensity = 0.36f + idleBreath + (hoverLerp * 0.12f);
+                float ambientIntensity = (isInteractable ? 0.36f : 0.20f) + idleBreath + (hoverLerp * 0.14f) + (clickFlashLerp * 0.45f);
                 if (ambientHaloMaterial.HasProperty("_Intensity"))
                     ambientHaloMaterial.SetFloat("_Intensity", Mathf.Max(0f, ambientIntensity));
             }
@@ -129,12 +179,12 @@ namespace Tessera.Tabletop
             // 2. 호버 시 베젤 테두리 마나 아우라 (베젤 링 외곽으로만 퍼지는 옅은 아우라)
             if (hearthstoneAuraRenderer != null)
             {
-                bool showAura = hoverLerp > 0.01f;
+                bool showAura = totalGlow > 0.01f;
                 hearthstoneAuraRenderer.enabled = showAura;
 
                 if (showAura && hearthstoneAuraMaterial != null)
                 {
-                    float auraIntensity = Mathf.Lerp(0.0f, 0.45f, hoverLerp);
+                    float auraIntensity = Mathf.Lerp(0.0f, 0.48f, hoverLerp) + (clickFlashLerp * 0.6f);
                     if (hearthstoneAuraMaterial.HasProperty("_Intensity"))
                         hearthstoneAuraMaterial.SetFloat("_Intensity", Mathf.Max(0f, auraIntensity));
                 }
@@ -144,13 +194,20 @@ namespace Tessera.Tabletop
             if (orbMaterial != null)
             {
                 if (orbMaterial.HasProperty("_RimIntensity"))
-                    orbMaterial.SetFloat("_RimIntensity", Mathf.Lerp(0.65f, 0.85f, hoverLerp));
+                    orbMaterial.SetFloat("_RimIntensity", Mathf.Lerp(0.65f, 0.88f, hoverLerp) + (clickFlashLerp * 0.5f));
             }
 
-            // 4. 내부 포인트 라이트 (받침대 및 테이블로 은은하게 퍼지는 빛)
+            // 4. 내부 마나 코어 에미션 반응 (클릭 시 플래시)
+            if (coreMaterial != null)
+            {
+                Color currentCoreEmission = coreBaseEmission * (1f + (hoverLerp * 0.3f) + (clickFlashLerp * 1.8f));
+                coreMaterial.SetColor("_EmissionColor", currentCoreEmission);
+            }
+
+            // 5. 내부 포인트 라이트 (받침대 및 테이블로 은은하게 퍼지는 빛)
             if (orbPointLight != null)
             {
-                orbPointLight.intensity = Mathf.Lerp(0.04f, 0.15f, hoverLerp);
+                orbPointLight.intensity = Mathf.Lerp(0.04f, 0.16f, hoverLerp) + (clickFlashLerp * 0.35f);
             }
         }
 
