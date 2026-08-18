@@ -94,7 +94,7 @@ namespace Tessera.Tabletop
                     ambientHaloMaterial.SetFloat("_Intensity", Mathf.Max(0f, ambientIntensity));
             }
 
-            // 2. 호버 시 하스스톤 스타일 마나 불꽃 아우라 (Hearthstone Playable Mana Flame Aura)
+            // 2. 호버 시 정적 빛 테두리 아우라 (Static Glowing Aura Ring - 2배 두께)
             if (hearthstoneAuraRenderer != null)
             {
                 bool showAura = hoverLerp > 0.01f;
@@ -102,17 +102,9 @@ namespace Tessera.Tabletop
 
                 if (showAura && hearthstoneAuraMaterial != null)
                 {
-                    float auraPulse = Mathf.Sin(Time.time * 3.5f) * 0.08f;
-                    float auraIntensity = Mathf.Lerp(0.0f, 1.0f, hoverLerp) + (hoverLerp * auraPulse);
+                    float auraIntensity = Mathf.Lerp(0.0f, 1.0f, hoverLerp);
                     if (hearthstoneAuraMaterial.HasProperty("_Intensity"))
                         hearthstoneAuraMaterial.SetFloat("_Intensity", Mathf.Max(0f, auraIntensity));
-
-                    // 미세한 스케일 트윈 (0.98 -> 1.0)
-                    if (hearthstoneAuraObject != null)
-                    {
-                        float scaleFactor = Mathf.Lerp(0.98f, 1.0f, hoverLerp);
-                        hearthstoneAuraObject.transform.localScale = new Vector3(2.35f * scaleFactor, 2.35f * scaleFactor, 1.0f);
-                    }
                 }
             }
 
@@ -192,15 +184,15 @@ namespace Tessera.Tabletop
             if (ambientHaloMaterial.HasProperty("_Intensity")) ambientHaloMaterial.SetFloat("_Intensity", 0.60f);
             if (ambientHaloMaterial.HasProperty("_ShimmerIntensity")) ambientHaloMaterial.SetFloat("_ShimmerIntensity", 0.12f);
 
-            // 1-7. 호버 시 하스스톤 스타일 마나 불꽃 아우라 머티리얼 (Hearthstone Swirling Flame Aura Material)
+            // 1-7. 호버 시 정적 빛 테두리 아우라 머티리얼 (Static Glowing Aura Ring - 2배 두께)
             Shader hearthstoneAuraShader = Shader.Find("DicePoC/OrbHearthstoneAura") ?? outerGlowShader;
             hearthstoneAuraMaterial = new Material(hearthstoneAuraShader) { name = "Orb_Hearthstone_Aura_Mat" };
             if (hearthstoneAuraMaterial.HasProperty("_AuraColor")) hearthstoneAuraMaterial.SetColor("_AuraColor", hearthstoneFlameColor);
             if (hearthstoneAuraMaterial.HasProperty("_CoreColor")) hearthstoneAuraMaterial.SetColor("_CoreColor", hearthstoneCoreFilamentColor);
-            if (hearthstoneAuraMaterial.HasProperty("_InnerRadius")) hearthstoneAuraMaterial.SetFloat("_InnerRadius", 0.675f);
-            if (hearthstoneAuraMaterial.HasProperty("_OuterRadius")) hearthstoneAuraMaterial.SetFloat("_OuterRadius", 0.950f);
-            if (hearthstoneAuraMaterial.HasProperty("_FlowSpeed")) hearthstoneAuraMaterial.SetFloat("_FlowSpeed", 1.6f);
-            if (hearthstoneAuraMaterial.HasProperty("_FlameTurbulence")) hearthstoneAuraMaterial.SetFloat("_FlameTurbulence", 0.85f);
+            if (hearthstoneAuraMaterial.HasProperty("_InnerRadius")) hearthstoneAuraMaterial.SetFloat("_InnerRadius", 0.58f);
+            if (hearthstoneAuraMaterial.HasProperty("_BorderWidth")) hearthstoneAuraMaterial.SetFloat("_BorderWidth", 0.12f);
+            if (hearthstoneAuraMaterial.HasProperty("_OuterRadius")) hearthstoneAuraMaterial.SetFloat("_OuterRadius", 0.98f);
+            if (hearthstoneAuraMaterial.HasProperty("_FalloffPower")) hearthstoneAuraMaterial.SetFloat("_FalloffPower", 1.8f);
             if (hearthstoneAuraMaterial.HasProperty("_Intensity")) hearthstoneAuraMaterial.SetFloat("_Intensity", 0.0f);
 
             // 2. 계단식 원형 스톤 받침대 (Tiered Stepped Base)
@@ -303,10 +295,10 @@ namespace Tessera.Tabletop
             ambientHaloRenderer = ambientHalo.GetComponent<MeshRenderer>();
             if (ambientHaloRenderer != null) ambientHaloRenderer.enabled = true;
 
-            // 5-4. 호버 시 하스스톤 스타일 마나 불꽃 아우라 평면 (Hearthstone Flame Aura Plane, 스케일 2.35f)
+            // 5-4. 호버 시 정적 빛 테두리 아우라 평면 (Static Glowing Border Plane, 2배 두께 확장 스케일 2.70f)
             hearthstoneAuraObject = GameObject.CreatePrimitive(PrimitiveType.Quad);
             hearthstoneAuraObject.name = "Orb_Hearthstone_Aura_Plane";
-            SetupPart(hearthstoneAuraObject, orbRoot.transform, new Vector3(0f, 0.005f, 0f), new Vector3(90f, 0f, 0f), new Vector3(2.35f, 2.35f, 1.0f), hearthstoneAuraMaterial);
+            SetupPart(hearthstoneAuraObject, orbRoot.transform, new Vector3(0f, 0.005f, 0f), new Vector3(90f, 0f, 0f), new Vector3(2.70f, 2.70f, 1.0f), hearthstoneAuraMaterial);
             hearthstoneAuraRenderer = hearthstoneAuraObject.GetComponent<MeshRenderer>();
             if (hearthstoneAuraRenderer != null) hearthstoneAuraRenderer.enabled = false;
 

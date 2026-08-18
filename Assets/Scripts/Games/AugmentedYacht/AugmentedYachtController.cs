@@ -207,7 +207,6 @@ namespace Tessera.Games.AugmentedYacht
             if (parchmentScoreSheet == null) parchmentScoreSheet = FindFirstObjectByType<ParchmentScoreSheet>();
             if (parchmentScoreSheet != null)
             {
-                parchmentScoreSheet.BuildDotMinimalOverlayUI();
                 parchmentScoreSheet.RefreshAllScores();
             }
 
@@ -606,7 +605,7 @@ namespace Tessera.Games.AugmentedYacht
                 Vector3 targetPos = DiceBoardMetrics.GetActivePosition(i, activeDice.Count);
                 activeDice[i].transform.localPosition = targetPos;
                 activeDice[i].transform.localScale = Vector3.one * DiceBoardMetrics.ActiveDieSize;
-                Quaternion targetRot = DiceFaceOrientation.GetTopRotation(diceValues[i], Vector3.forward);
+                Quaternion targetRot = DiceFaceOrientation.GetCameraFacingRotation(diceValues[i], 75.0f);
                 activeDice[i].transform.localRotation = targetRot;
 
                 Transform visual = activeDice[i].transform.Find("Visual");
@@ -779,27 +778,27 @@ namespace Tessera.Games.AugmentedYacht
 
             var unkeptIndices = new List<int>();
 
-            // 1. 킵된 주사위와 활성(킵되지 않은) 주사위 분류 및 순수 Yaw 수평 정렬 목표 회전 계산
+            // 1. 킵된 주사위와 활성(킵되지 않은) 주사위 분류 및 카메라 정면 틸트 정렬 목표 회전 계산
             for (int i = 0; i < activeDice.Count; i++)
             {
                 diceTransforms[i] = activeDice[i] != null ? activeDice[i].transform : null;
                 float normalScale = DiceBoardMetrics.DieSize;
 
-                // 현재 주사위 루트의 착지 회전으로부터 윗면(Top)을 유지한 채 순수 Yaw 수평만 정렬하는 직립 회전 계산
+                // 현재 주사위 루트의 착지 회전으로부터 윗면(Top)을 유지한 채 카메라 렌즈를 정면으로 바라보도록 회전 계산
                 Quaternion currentRot = activeDice[i] != null ? activeDice[i].transform.localRotation : Quaternion.identity;
-                Quaternion pureYawRot = DiceFaceOrientation.GetUprightRotation(currentRot, Vector3.forward);
+                Quaternion cameraFacingRot = DiceFaceOrientation.GetCameraFacingUprightRotation(currentRot, 75.0f);
 
                 if (keptDice[i])
                 {
                     int slot = (keptSlotIndices.Count > i && keptSlotIndices[i] >= 0) ? keptSlotIndices[i] : 0;
                     targetPositions[i] = DiceBoardMetrics.GetKeepPosition(slot);
                     targetScales[i] = Vector3.one * (normalScale * DiceBoardMetrics.KeepDieScale);
-                    targetRotations[i] = pureYawRot;
+                    targetRotations[i] = cameraFacingRot;
                 }
                 else
                 {
                     unkeptIndices.Add(i);
-                    targetRotations[i] = pureYawRot;
+                    targetRotations[i] = cameraFacingRot;
                 }
             }
 
@@ -970,6 +969,7 @@ namespace Tessera.Games.AugmentedYacht
         {
             internalResolution = resolution;
             ApplyRenderSettings();
+            if (parchmentScoreSheet != null) parchmentScoreSheet.SyncOverlayTransform();
         }
 
         private bool ResolveEditableLayout()
@@ -1002,11 +1002,8 @@ namespace Tessera.Games.AugmentedYacht
 
             EnsureSingleAudioListener();
 
-            // 항상 최신 테이블 및 배경 레이아웃 동기화
-            BuildTableLayout();
-
-            if (rollOrb == null) rollOrb = FindFirstObjectByType<RollOrb>();
-            if (rerollCounterBar == null) rerollCounterBar = FindFirstObjectByType<RerollCounterBar>();
+            // 씬 내 테이블 요소들 안전 바인딩 또는 누락분 생성 (파괴 없이)
+            EnsureTableLayoutElements();
 
             ApplyTopDownCamera();
             CreateRenderTarget();
@@ -1145,10 +1142,7 @@ namespace Tessera.Games.AugmentedYacht
             GameObject cameraObject = new("Full Field World Camera", typeof(Camera), typeof(AudioListener));
             cameraObject.transform.SetParent(layoutRoot, false);
             worldCamera = cameraObject.GetComponent<Camera>();
-            worldCamera.transform.position = new Vector3(0f, 9.6f, -5.2f);
             ApplyTopDownCamera();
-            worldCamera.orthographic = true;
-            worldCamera.orthographicSize = 8.0f;
             worldCamera.nearClipPlane = 0.1f;
             worldCamera.farClipPlane = 40f;
             worldCamera.clearFlags = CameraClearFlags.SolidColor;
@@ -1165,7 +1159,7 @@ namespace Tessera.Games.AugmentedYacht
             key.shadowStrength = 0.58f;
             key.shadowBias = 0.005f;
             key.shadowNormalBias = 0.03f;
-            lightObject.transform.rotation = Quaternion.Euler(75f, -20f, 0f);
+            lightObject.transform.rotation = Quaternion.Euler(60f, -35f, 0f);
             lightObject.transform.SetParent(layoutRoot, true);
 
             BuildTableLayout();
@@ -1174,11 +1168,16 @@ namespace Tessera.Games.AugmentedYacht
 
         private void ApplyTopDownCamera()
         {
+            ApplyAngledWorldCamera(75.0f);
+        }
+
+        private void ApplyAngledWorldCamera(float pitchAngle = 75.0f)
+        {
             if (worldCamera == null) return;
-            worldCamera.transform.position = new Vector3(CenterSectionX, 11f, 0f);
-            worldCamera.transform.rotation = Quaternion.Euler(90f, 0f, 0f);
+            worldCamera.transform.position = new Vector3(CenterSectionX, 11.5f, -3.1f);
+            worldCamera.transform.rotation = Quaternion.Euler(pitchAngle, 0f, 0f);
             worldCamera.orthographic = true;
-            worldCamera.orthographicSize = 8.0f;
+            worldCamera.orthographicSize = 8.2f;
         }
 
         private void EnsureLayoutRoot()
@@ -1196,14 +1195,88 @@ namespace Tessera.Games.AugmentedYacht
             layoutRoot = root.transform;
         }
 
+        private void EnsureTableLayoutElements()
+        {
+            EnsureLayoutRoot();
+
+            // 1. Table
+            Transform table = layoutRoot.Find("3D Wood Planks Table");
+            if (table == null) Create3DWoodPlanksTable();
+
+            // 2. Runner
+            Transform runner = layoutRoot.Find("3D Fabric Runner");
+            if (runner == null) Create3DFabricRunner();
+
+            // 3. Tray Visual
+            Transform tray = layoutRoot.Find("Yacht Tray Visual");
+            if (tray == null) CreateGameTray();
+
+            // 4. Augment Card Tray
+            if (augmentCardTray == null)
+            {
+                augmentCardTray = layoutRoot.GetComponentInChildren<AugmentCardTray>() ?? FindFirstObjectByType<AugmentCardTray>();
+            }
+            if (augmentCardTray == null) CreateAugmentCardTray();
+
+            // 5. Parchment Score Sheet
+            if (parchmentScoreSheet == null)
+            {
+                parchmentScoreSheet = layoutRoot.GetComponentInChildren<ParchmentScoreSheet>() ?? FindFirstObjectByType<ParchmentScoreSheet>();
+            }
+            if (parchmentScoreSheet == null)
+            {
+                CreateScoreSheet();
+            }
+            else
+            {
+                parchmentScoreSheet.EnsureStructure();
+                parchmentScoreSheet.RefreshAllScores();
+            }
+
+            // 6. Inkwell and Quill
+            Transform inkwell = layoutRoot.Find("3D Antique Inkwell and Quill");
+            if (inkwell == null) CreateInkwellAndQuill();
+
+            // 7. Paperweight
+            Transform paperweight = layoutRoot.Find("3D Parchment Paperweight");
+            if (paperweight == null) CreatePaperweight();
+
+            // 8. Reroll Counter Bar
+            if (rerollCounterBar == null)
+            {
+                rerollCounterBar = layoutRoot.GetComponentInChildren<RerollCounterBar>() ?? FindFirstObjectByType<RerollCounterBar>();
+            }
+            if (rerollCounterBar == null)
+            {
+                CreateRerollCounterBar();
+            }
+            else
+            {
+                rerollCounterBar.BuildGeometry();
+                rerollCounterBar.SetRollsRemaining(3, 3);
+            }
+
+            // 9. Roll Orb
+            if (rollOrb == null)
+            {
+                rollOrb = layoutRoot.GetComponentInChildren<RollOrb>() ?? FindFirstObjectByType<RollOrb>();
+            }
+            if (rollOrb == null)
+            {
+                CreateRollOrb();
+            }
+            else
+            {
+                rollOrb.BuildGeometry();
+            }
+        }
+
         private void BuildTableLayout()
         {
-            // 기존 테이블/러너/종이/매트/양피지/트레이 오브젝트 정리 후 재생성 (중복 및 구버전 방지)
-            string[] cleanupKeywords = { "Paper", "Score Sheet", "Layered Parchment", "Game Info", "Burgundy", "3D Wood Planks Table", "3D Fabric Runner", "Medieval Wood Planks Table", "Emerald Wide Runner", "Emerald Ribbon Runner", "Solid Burgundy Game Mat", "Augment Card Tray", "Stone Augment Card Tray", "Roll Orb", "Reroll Counter Bar" };
-            
-            // 1. layoutRoot 직계 자식 정리
+            // 기존 layoutRoot 직계 자식 정리 (중복 생성 방지)
             if (layoutRoot != null)
             {
+                string[] cleanupKeywords = { "Paper", "Score Sheet", "Layered Parchment", "Game Info", "Burgundy", "3D Wood Planks Table", "3D Fabric Runner", "Medieval Wood Planks Table", "Emerald Wide Runner", "Emerald Ribbon Runner", "Solid Burgundy Game Mat", "Augment Card Tray", "Stone Augment Card Tray", "Roll Orb", "Reroll Counter Bar", "Inkwell", "Quill", "Paperweight" };
                 List<GameObject> directChildrenToDelete = new();
                 for (int i = 0; i < layoutRoot.childCount; i++)
                 {
@@ -1218,21 +1291,6 @@ namespace Tessera.Games.AugmentedYacht
                     }
                 }
                 foreach (GameObject go in directChildrenToDelete)
-                {
-                    if (Application.isPlaying) Destroy(go);
-                    else DestroyImmediate(go);
-                }
-            }
-
-            // 2. Hierarchy 전체의 불필요 오브젝트 전수 검색 및 영구 삭제
-            GameObject[] allSceneObjects = Resources.FindObjectsOfTypeAll<GameObject>();
-            foreach (GameObject go in allSceneObjects)
-            {
-                if (go == null) continue;
-#if UNITY_EDITOR
-                if (UnityEditor.EditorUtility.IsPersistent(go)) continue;
-#endif
-                if (go.name.Contains("Paper") || go.name.Contains("Score Sheet") || go.name.Contains("Layered Parchment") || go.name.Contains("Game Info") || go.name.Contains("Burgundy") || go.name.Contains("Inkwell") || go.name.Contains("Quill") || go.name.Contains("Paperweight") || go.name.Contains("Augment Card Tray") || go.name.Contains("Roll Orb") || go.name.Contains("Reroll Counter Bar"))
                 {
                     if (Application.isPlaying) Destroy(go);
                     else DestroyImmediate(go);
@@ -1269,14 +1327,14 @@ namespace Tessera.Games.AugmentedYacht
 
         private void CreateRerollCounterBar()
         {
-            Vector3 counterPos = new Vector3(-2.68f, 0.12f, -5.68f);
+            Vector3 counterPos = new Vector3(-2.68f, 0.12f, -6.15f);
             Vector3 counterScale = Vector3.one * 1.30f;
             rerollCounterBar = RerollCounterBar.Create(layoutRoot, counterPos, null, counterScale);
         }
 
         private void CreateRollOrb()
         {
-            Vector3 orbPos = new Vector3(2.25f, 0.12f, -5.84f);
+            Vector3 orbPos = new Vector3(2.25f, 0.12f, -6.30f);
             Vector3 orbScale = Vector3.one * 1.35f;
             rollOrb = RollOrb.Create(layoutRoot, orbPos, null, orbScale);
         }
@@ -1293,11 +1351,12 @@ namespace Tessera.Games.AugmentedYacht
             Vector3 scoreSheetPos = new Vector3(8.8f, -0.38f, 0.03f);
             Vector3 scoreSheetScale = Vector3.one * 1.5f;
             parchmentScoreSheet = ParchmentScoreSheet.Create(layoutRoot, scoreSheetPos, scoreSheetScale);
+            parchmentScoreSheet.RefreshAllScores();
         }
 
         private void CreateInkwellAndQuill()
         {
-            Vector3 inkwellPos = new Vector3(13.0f, 0.08f, -7.5f);
+            Vector3 inkwellPos = new Vector3(13.0f, 0.08f, -7.9f);
             Quaternion inkwellRot = Quaternion.Euler(0f, 110f, 0f);
             Vector3 inkwellScale = Vector3.one * 2.5f;
             InkwellAndQuill.Create(layoutRoot, inkwellPos, inkwellRot, inkwellScale);
@@ -1617,7 +1676,7 @@ namespace Tessera.Games.AugmentedYacht
             if (key != null)
             {
                 key.enabled = true;
-                key.transform.rotation = Quaternion.Euler(75f, -20f, 0f);
+                key.transform.rotation = Quaternion.Euler(60f, -35f, 0f);
                 key.cullingMask |= 1 << DiceLayer;
                 key.shadows = LightShadows.Soft;
                 key.shadowStrength = 0.58f;
@@ -1688,8 +1747,9 @@ namespace Tessera.Games.AugmentedYacht
             if (parchmentScoreSheet == null) parchmentScoreSheet = FindFirstObjectByType<ParchmentScoreSheet>();
             if (parchmentScoreSheet != null)
             {
-                parchmentScoreSheet.BuildDotMinimalOverlayUI();
+                parchmentScoreSheet.EnsureStructure();
                 parchmentScoreSheet.RefreshAllScores();
+                parchmentScoreSheet.SyncOverlayTransform();
             }
         }
 

@@ -25,6 +25,9 @@ namespace Tessera.Dice
             Vector3.forward   // 6 (Numpad 1, 3, 4, 6, 7, 9 세로 2열 정렬)
         };
 
+        public const float DefaultCameraPitch = 75.0f;
+        public const float DefaultCameraTiltOffset = -15.0f; // 75f - 90f
+
         public static Quaternion GetTopRotation(int value)
         {
             return GetTopRotation(value, Vector3.forward);
@@ -40,6 +43,25 @@ namespace Tessera.Dice
             Quaternion sourceBasis = Quaternion.LookRotation(FaceNormals[value - 1], FaceUpAxes[value - 1]);
             Quaternion targetBasis = Quaternion.LookRotation(Vector3.up, alignedFaceUp);
             return targetBasis * Quaternion.Inverse(sourceBasis);
+        }
+
+        /// <summary>
+        /// 카메라의 틸트 각도(기본 75°)에 맞춰 주사위 눈금 상단면이 카메라 렌즈와 정면 직교하도록 회전 계산
+        /// </summary>
+        public static Quaternion GetCameraFacingRotation(int value, float cameraPitch = DefaultCameraPitch)
+        {
+            float tiltAngle = cameraPitch - 90f; // 예: 75° 카메라 기준 -15° 틸트
+            Quaternion tilt = Quaternion.Euler(tiltAngle, 0f, 0f);
+            return tilt * GetTopRotation(value, Vector3.forward);
+        }
+
+        /// <summary>
+        /// 착지된 주사위의 윗면 눈금을 유지한 채 카메라 렌즈를 정면으로 바라보도록 회전 계산
+        /// </summary>
+        public static Quaternion GetCameraFacingUprightRotation(Quaternion landingRotation, float cameraPitch = DefaultCameraPitch)
+        {
+            int topValue = GetTopValue(landingRotation);
+            return GetCameraFacingRotation(topValue, cameraPitch);
         }
 
         public static Vector3 GetFaceNormal(int value)
