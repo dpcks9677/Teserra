@@ -685,6 +685,13 @@ namespace Tessera.Games.AugmentedYacht
                 rollOrb.AdvanceZodiac();
             }
 
+            // 3D 롤 카운터 육각 보석 잔여 수 갱신
+            if (rerollCounterBar != null)
+            {
+                int remaining = Mathf.Max(0, 3 - ((rollIndex - 1) % 3) - 1);
+                rerollCounterBar.SetRollsRemaining(remaining, 3);
+            }
+
             // 1. 결정론적 타겟 눈 생성 (1~6)
             for (int i = 0; i < diceCount; i++)
             {
@@ -1386,8 +1393,8 @@ namespace Tessera.Games.AugmentedYacht
 
         private void CreateRerollCounterBar()
         {
-            Vector3 counterPos = new Vector3(0.53f, 0.12f, 5.73f);
-            Vector3 counterScale = Vector3.one * 1.30f;
+            Vector3 counterPos = new Vector3(-0.35f, 0.12f, -6.30f);
+            Vector3 counterScale = Vector3.one * 1.35f;
             rerollCounterBar = RerollCounterBar.Create(layoutRoot, counterPos, null, counterScale);
         }
 
