@@ -679,6 +679,12 @@ namespace Tessera.Games.AugmentedYacht
                 hourglassTimer.StartTimer(60f);
             }
 
+            // 수정구 황도 12궁 다음 별자리로 순차 전환 (부드러운 크로스페이드)
+            if (rollOrb != null)
+            {
+                rollOrb.AdvanceZodiac();
+            }
+
             // 1. 결정론적 타겟 눈 생성 (1~6)
             for (int i = 0; i < diceCount; i++)
             {
@@ -965,10 +971,11 @@ namespace Tessera.Games.AugmentedYacht
                 : $"KEEP {keptCount}/{diceCount}";
 
             string valuesSummary = hasCompletedRoll ? $" [ {string.Join(", ", diceValues)} ]" : "";
+            string zodiacInfo = rollOrb != null ? $"  |  ★ {rollOrb.CurrentZodiacName}" : "";
 
             statusText.text = string.IsNullOrEmpty(message)
-                ? $"{internalResolution.x} x {internalResolution.y}  |  {interaction}{valuesSummary}  |  ORB / SPACE: ROLL"
-                : $"{message}  |  {interaction}{valuesSummary}";
+                ? $"{internalResolution.x} x {internalResolution.y}  |  {interaction}{valuesSummary}{zodiacInfo}  |  ORB / SPACE: ROLL"
+                : $"{message}  |  {interaction}{valuesSummary}{zodiacInfo}";
         }
 
         public void ToggleResolution()

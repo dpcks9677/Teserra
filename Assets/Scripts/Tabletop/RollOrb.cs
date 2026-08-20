@@ -25,18 +25,25 @@ namespace Tessera.Tabletop
         private float clickFlashLerp;
         private Coroutine clickFeedbackRoutine;
 
+        [Header("Zodiac Constellation")]
+        [SerializeField, Range(0, 11)] private int currentZodiacIndex = 0;
+        private Material constellationMaterial;
+        private MeshRenderer constellationRenderer;
+        private Coroutine zodiacTransitionRoutine;
+
         public bool IsHovered => isHovered;
         public bool IsInteractable => isInteractable;
+        public int CurrentZodiacIndex => currentZodiacIndex;
+        public string CurrentZodiacName => ZodiacConstellationData.GetDefinition(currentZodiacIndex).nameKr;
+        public string CurrentZodiacNameEn => ZodiacConstellationData.GetDefinition(currentZodiacIndex).nameEn;
         public event Action OnClicked;
 
         private Material orbMaterial;
-        private Material coreMaterial;
         private Material ambientHaloMaterial;
         private MeshRenderer ambientHaloRenderer;
         private Material hearthstoneAuraMaterial;
         private MeshRenderer hearthstoneAuraRenderer;
         private GameObject hearthstoneAuraObject;
-        private Light orbPointLight;
         private ParticleSystem magicParticles;
 
         // 레퍼런스 이미지 추출 팔레트 (묵직하고 깊은 딥 사파이어 크리스탈 & 1.3배 유영)
@@ -44,9 +51,6 @@ namespace Tessera.Tabletop
         private readonly Color hoverOrbColor = new(0.07f, 0.24f, 0.50f, 1.00f);
         private readonly Color baseEmissionColor = new(0.01f, 0.02f, 0.06f);
         private readonly Color hoverEmissionColor = new(0.015f, 0.04f, 0.10f);
-
-        private readonly Color coreBaseEmission = new Color(0.08f, 0.42f, 0.72f) * 0.75f;
-        private readonly Color coreHoverEmission = new Color(0.08f, 0.42f, 0.72f) * 0.75f;
 
         // 상시 적용 은은한 사파이어 외곽 후광 컬러
         private readonly Color ambientHaloColor = new(0.12f, 0.55f, 0.95f, 1.0f);
@@ -57,37 +61,107 @@ namespace Tessera.Tabletop
 
         private void Awake()
         {
+            ZodiacConstellationData.ClearCache();
             EnsureGeometry();
         }
 
         private void OnEnable()
         {
+            ZodiacConstellationData.ClearCache();
             EnsureGeometry();
         }
 
-#if UNITY_EDITOR
-        private void OnValidate()
+        public void RebuildOrbGeometry()
         {
-            if (!Application.isPlaying)
+            ZodiacConstellationData.ClearCache();
+            while (transform.childCount > 0)
             {
-                UnityEditor.EditorApplication.delayCall -= DelayEnsureGeometry;
-                UnityEditor.EditorApplication.delayCall += DelayEnsureGeometry;
+                var child = transform.GetChild(0).gameObject;
+                if (Application.isPlaying) Destroy(child);
+                else DestroyImmediate(child);
             }
+            BuildGeometry();
         }
-
-        private void DelayEnsureGeometry()
-        {
-            if (this == null || gameObject == null) return;
-            EnsureGeometry();
-        }
-#endif
 
         public void EnsureGeometry()
         {
-            if (transform.childCount == 0 || transform.Find("Glass_Orb_Root") == null)
+            if (transform.childCount == 0)
             {
                 BuildGeometry();
             }
+        }
+
+        public void AdvanceZodiac()
+        {
+            int nextIndex = (currentZodiacIndex + 1) % 12;
+            SetZodiac(nextIndex);
+        }
+
+        public void SetZodiac(int index, bool immediate = false)
+        {
+            int targetIndex = Mathf.Clamp(index, 0, 11);
+            if (targetIndex == currentZodiacIndex && !immediate) return;
+
+            int prevIndex = currentZodiacIndex;
+            currentZodiacIndex = targetIndex;
+
+            if (immediate || !gameObject.activeInHierarchy || !Application.isPlaying)
+            {
+                if (zodiacTransitionRoutine != null)
+                {
+                    StopCoroutine(zodiacTransitionRoutine);
+                    zodiacTransitionRoutine = null;
+                }
+                if (constellationMaterial != null)
+                {
+                    Texture2D targetTex = ZodiacConstellationData.GetZodiacTexture(currentZodiacIndex);
+                    if (constellationMaterial.HasProperty("_CurrentTex")) constellationMaterial.SetTexture("_CurrentTex", targetTex);
+                    if (constellationMaterial.HasProperty("_NextTex")) constellationMaterial.SetTexture("_NextTex", targetTex);
+                    if (constellationMaterial.HasProperty("_Transition")) constellationMaterial.SetFloat("_Transition", 0.0f);
+                }
+                return;
+            }
+
+            if (zodiacTransitionRoutine != null)
+            {
+                StopCoroutine(zodiacTransitionRoutine);
+            }
+            zodiacTransitionRoutine = StartCoroutine(ZodiacTransitionAnimationRoutine(prevIndex, targetIndex));
+        }
+
+        private System.Collections.IEnumerator ZodiacTransitionAnimationRoutine(int fromIdx, int toIdx, float duration = 0.85f)
+        {
+            Texture2D fromTex = ZodiacConstellationData.GetZodiacTexture(fromIdx);
+            Texture2D toTex = ZodiacConstellationData.GetZodiacTexture(toIdx);
+
+            if (constellationMaterial != null)
+            {
+                if (constellationMaterial.HasProperty("_CurrentTex")) constellationMaterial.SetTexture("_CurrentTex", fromTex);
+                if (constellationMaterial.HasProperty("_NextTex")) constellationMaterial.SetTexture("_NextTex", toTex);
+                if (constellationMaterial.HasProperty("_Transition")) constellationMaterial.SetFloat("_Transition", 0.0f);
+            }
+
+            float elapsed = 0f;
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                float t = Mathf.Clamp01(elapsed / duration);
+                float smoothT = Mathf.SmoothStep(0f, 1f, t);
+
+                if (constellationMaterial != null && constellationMaterial.HasProperty("_Transition"))
+                {
+                    constellationMaterial.SetFloat("_Transition", smoothT);
+                }
+                yield return null;
+            }
+
+            if (constellationMaterial != null)
+            {
+                if (constellationMaterial.HasProperty("_CurrentTex")) constellationMaterial.SetTexture("_CurrentTex", toTex);
+                if (constellationMaterial.HasProperty("_Transition")) constellationMaterial.SetFloat("_Transition", 0.0f);
+            }
+
+            zodiacTransitionRoutine = null;
         }
 
         public static RollOrb Create(Transform parent, Vector3 worldPosition, Quaternion? rotation = null, Vector3? scale = null)
@@ -194,20 +268,20 @@ namespace Tessera.Tabletop
             if (orbMaterial != null)
             {
                 if (orbMaterial.HasProperty("_RimIntensity"))
-                    orbMaterial.SetFloat("_RimIntensity", Mathf.Lerp(0.65f, 0.88f, hoverLerp) + (clickFlashLerp * 0.5f));
+                    orbMaterial.SetFloat("_RimIntensity", Mathf.Lerp(0.35f, 0.55f, hoverLerp) + (clickFlashLerp * 0.3f));
             }
 
-            // 4. 내부 마나 코어 에미션 반응 (클릭 시 플래시)
-            if (coreMaterial != null)
+            // 4. 내부 별자리 머티리얼 반응 (은은한 백색 발광, 호버 시 상승, 클릭 시 플래시)
+            if (constellationMaterial != null)
             {
-                Color currentCoreEmission = coreBaseEmission * (1f + (hoverLerp * 0.3f) + (clickFlashLerp * 1.8f));
-                coreMaterial.SetColor("_EmissionColor", currentCoreEmission);
-            }
+                float baseIntensity = isInteractable ? 0.95f : 0.60f;
+                float constIntensity = baseIntensity + (hoverLerp * 0.30f) + (clickFlashLerp * 1.2f);
+                if (constellationMaterial.HasProperty("_Intensity"))
+                    constellationMaterial.SetFloat("_Intensity", constIntensity);
 
-            // 5. 내부 포인트 라이트 (받침대 및 테이블로 은은하게 퍼지는 빛)
-            if (orbPointLight != null)
-            {
-                orbPointLight.intensity = Mathf.Lerp(0.04f, 0.16f, hoverLerp) + (clickFlashLerp * 0.35f);
+                float twinkleSpeed = Mathf.Lerp(2.2f, 3.8f, hoverLerp);
+                if (constellationMaterial.HasProperty("_TwinkleSpeed"))
+                    constellationMaterial.SetFloat("_TwinkleSpeed", twinkleSpeed);
             }
         }
 
@@ -240,7 +314,7 @@ namespace Tessera.Tabletop
             Material goldTrimMat = CreateMat(litShader, "Orb_GoldTrimMat", new Color(0.86f, 0.68f, 0.28f), 0.88f, 0.68f);
             Material goldDarkMat = CreateMat(litShader, "Orb_GoldDarkMat", new Color(0.58f, 0.44f, 0.16f), 0.85f, 0.52f);
 
-            // 1-3. 맑고 깊은 사파이어 수정구 구체 머티리얼 (2배 두꺼운 오로라 Caustics 셰이더 적용, 속도 0.65)
+            // 1-3. 맑고 깊은 사파이어 수정구 구체 머티리얼 (오로라 Caustics 및 유리 스페큘러 반사)
             Shader causticsShader = Shader.Find("DicePoC/OrbCaustics") ?? litShader;
             orbMaterial = new Material(causticsShader) { name = "Orb_Crystal_Caustics_Mat" };
             if (orbMaterial.HasProperty("_BaseColor")) orbMaterial.SetColor("_BaseColor", baseOrbColor);
@@ -253,17 +327,11 @@ namespace Tessera.Tabletop
             if (orbMaterial.HasProperty("_RimColor")) orbMaterial.SetColor("_RimColor", new Color(0.12f, 0.45f, 0.72f, 1.0f));
             if (orbMaterial.HasProperty("_RimPower")) orbMaterial.SetFloat("_RimPower", 3.0f);
             if (orbMaterial.HasProperty("_RimIntensity")) orbMaterial.SetFloat("_RimIntensity", 0.65f);
-            if (orbMaterial.HasProperty("_Smoothness")) orbMaterial.SetFloat("_Smoothness", 0.98f);
 
-            // 1-4. 내부 발광 마나 코어 머티리얼 (Luminous Inner Core)
-            coreMaterial = CreateTransparentMat(litShader, "Orb_CoreMat", new Color(0.65f, 0.95f, 1.00f, 0.75f), 0.0f, 0.90f);
-            coreMaterial.EnableKeyword("_EMISSION");
-            coreMaterial.SetColor("_EmissionColor", coreBaseEmission);
-
-            // 1-5. 앤틱 실버 플로럴 브로치 머티리얼 (Antique Silver / White Platinum)
+            // 1-4. 앤틱 실버 플로럴 브로치 머티리얼 (Antique Silver / White Platinum)
             Material broochSilverMat = CreateMat(litShader, "Orb_BroochSilverMat", new Color(0.88f, 0.91f, 0.95f), 0.92f, 0.88f);
 
-            // 1-6. 상시 외곽 은은한 후광 머티리얼 (베젤 링 바깥쪽으로만 옅게 방사)
+            // 1-5. 상시 외곽 은은한 후광 머티리얼 (베젤 링 바깥쪽으로만 옅게 방사)
             Shader outerGlowShader = Shader.Find("DicePoC/OrbOuterGlow") ?? Shader.Find("Universal Render Pipeline/Unlit") ?? litShader;
             ambientHaloMaterial = new Material(outerGlowShader) { name = "Orb_Ambient_Halo_Mat" };
             if (ambientHaloMaterial.HasProperty("_GlowColor")) ambientHaloMaterial.SetColor("_GlowColor", ambientHaloColor);
@@ -273,7 +341,7 @@ namespace Tessera.Tabletop
             if (ambientHaloMaterial.HasProperty("_Intensity")) ambientHaloMaterial.SetFloat("_Intensity", 0.38f); // 옅은 강도
             if (ambientHaloMaterial.HasProperty("_ShimmerIntensity")) ambientHaloMaterial.SetFloat("_ShimmerIntensity", 0.08f);
 
-            // 1-7. 호버 시 정적 빛 테두리 아우라 머티리얼 (베젤 링 외곽으로만 퍼지는 옅은 아우라)
+            // 1-6. 호버 시 정적 빛 테두리 아우라 머티리얼 (베젤 링 외곽으로만 퍼지는 옅은 아우라)
             Shader hearthstoneAuraShader = Shader.Find("DicePoC/OrbHearthstoneAura") ?? outerGlowShader;
             hearthstoneAuraMaterial = new Material(hearthstoneAuraShader) { name = "Orb_Hearthstone_Aura_Mat" };
             if (hearthstoneAuraMaterial.HasProperty("_AuraColor")) hearthstoneAuraMaterial.SetColor("_AuraColor", hearthstoneFlameColor);
@@ -283,6 +351,24 @@ namespace Tessera.Tabletop
             if (hearthstoneAuraMaterial.HasProperty("_OuterRadius")) hearthstoneAuraMaterial.SetFloat("_OuterRadius", 0.98f);
             if (hearthstoneAuraMaterial.HasProperty("_FalloffPower")) hearthstoneAuraMaterial.SetFloat("_FalloffPower", 1.8f);
             if (hearthstoneAuraMaterial.HasProperty("_Intensity")) hearthstoneAuraMaterial.SetFloat("_Intensity", 0.0f);
+
+            // 1-7. 황도 12궁 은은한 백색 별자리 머티리얼 (카메라 시선 기준 수정구 내부 렌더링, 1.5배 전반 확장)
+            Shader constellationShader = Shader.Find("DicePoC/OrbConstellation") ?? outerGlowShader;
+            constellationMaterial = new Material(constellationShader) { name = "Orb_Constellation_Mat" };
+            Texture2D curZodiacTex = ZodiacConstellationData.GetZodiacTexture(currentZodiacIndex);
+            if (constellationMaterial.HasProperty("_ConstellationColor")) constellationMaterial.SetColor("_ConstellationColor", new Color(0.92f, 0.96f, 1.00f, 0.55f));
+            if (constellationMaterial.HasProperty("_CurrentTex")) constellationMaterial.SetTexture("_CurrentTex", curZodiacTex);
+            if (constellationMaterial.HasProperty("_NextTex")) constellationMaterial.SetTexture("_NextTex", curZodiacTex);
+            if (constellationMaterial.HasProperty("_Transition")) constellationMaterial.SetFloat("_Transition", 0.0f);
+            if (constellationMaterial.HasProperty("_Intensity")) constellationMaterial.SetFloat("_Intensity", 0.95f);
+            if (constellationMaterial.HasProperty("_TwinkleSpeed")) constellationMaterial.SetFloat("_TwinkleSpeed", 2.2f);
+            if (constellationMaterial.HasProperty("_TwinkleAmount")) constellationMaterial.SetFloat("_TwinkleAmount", 0.55f);
+            if (constellationMaterial.HasProperty("_FloatDrift")) constellationMaterial.SetFloat("_FloatDrift", 0.012f);
+            if (constellationMaterial.HasProperty("_WarpSpeed")) constellationMaterial.SetFloat("_WarpSpeed", 0.75f);
+            if (constellationMaterial.HasProperty("_WarpScale")) constellationMaterial.SetFloat("_WarpScale", 2.2f);
+            if (constellationMaterial.HasProperty("_WarpDistortion")) constellationMaterial.SetFloat("_WarpDistortion", 0.010f);
+            if (constellationMaterial.HasProperty("_SphereRadius")) constellationMaterial.SetFloat("_SphereRadius", 0.78f);
+            if (constellationMaterial.HasProperty("_MaskFalloff")) constellationMaterial.SetFloat("_MaskFalloff", 0.06f);
 
             // 2. 계단식 원형 스톤 받침대 (Tiered Stepped Base)
             GameObject baseRoot = new("Base_Platform");
@@ -361,7 +447,7 @@ namespace Tessera.Tabletop
                 SetupPart(stud, collarRoot.transform, studPos, Vector3.zero, new Vector3(0.12f, 0.12f, 0.12f), goldTrimMat);
             }
 
-            // 5. 마법 수정구 (Magic Crystal Orb)
+            // 5. 마법 수정구 (Magic Crystal Orb - 마나 코어 없이 맑은 딥 사파이어)
             GameObject orbRoot = new("Crystal_Orb_Root");
             orbRoot.layer = DecorationLayer;
             orbRoot.transform.SetParent(transform, false);
@@ -372,22 +458,7 @@ namespace Tessera.Tabletop
             orbSphere.name = "Crystal_Orb_Sphere";
             SetupPart(orbSphere, orbRoot.transform, Vector3.zero, Vector3.zero, Vector3.one * 1.55f, orbMaterial);
 
-            // 5-2. 내부 발광 마나 코어 (Luminous Inner Core Sphere)
-            GameObject coreSphere = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            coreSphere.name = "Crystal_Inner_Core";
-            SetupPart(coreSphere, orbRoot.transform, Vector3.zero, Vector3.zero, Vector3.one * 0.35f, coreMaterial);
-
-            // 5-3. 내부 은은한 포인트 라이트 (묵직한 딥 블루 톤, 절제된 미세 강도)
-            GameObject lightObj = new("Orb_PointLight");
-            lightObj.transform.SetParent(orbRoot.transform, false);
-            orbPointLight = lightObj.AddComponent<Light>();
-            orbPointLight.type = LightType.Point;
-            orbPointLight.color = new Color(0.15f, 0.55f, 0.82f);
-            orbPointLight.range = 2.4f;
-            orbPointLight.intensity = 0.04f;
-            orbPointLight.shadows = LightShadows.None;
-
-            // 6. 카메라 대면 원형 백은 테두리 링 + 덩굴 데코레이션 및 75도 동축 후광/아우라
+            // 6. 카메라 대면 원형 백은 테두리 링 + 덩굴 데코레이션 및 75도 동축 후광/아우라/별자리
             CreateOrnateSilverBezelFrame(orbRoot.transform, broochSilverMat, goldTrimMat);
 
             // 7. 4~5시 방향 아르누보 팔메트 & 트윈 볼류트 양각 금속 장식 (Palmette Relief Ornament)
@@ -429,6 +500,18 @@ namespace Tessera.Tabletop
             SetupPart(hearthstoneAuraObject, bezelRoot.transform, new Vector3(0f, 0f, -0.008f), Vector3.zero, new Vector3(2.40f, 2.40f, 1.0f), hearthstoneAuraMaterial);
             hearthstoneAuraRenderer = hearthstoneAuraObject.GetComponent<MeshRenderer>();
             if (hearthstoneAuraRenderer != null) hearthstoneAuraRenderer.enabled = false;
+
+            // 0-3. 수정구 내부 별자리 일러스트 평면 (75도 직교 카메라 시선 정면)
+            GameObject constellationPlane = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            constellationPlane.name = "Orb_Constellation_Plane";
+            SetupPart(constellationPlane, bezelRoot.transform, new Vector3(0f, 0f, -0.005f), Vector3.zero, new Vector3(1.52f, 1.52f, 1.0f), constellationMaterial);
+            constellationRenderer = constellationPlane.GetComponent<MeshRenderer>();
+            if (constellationRenderer != null)
+            {
+                constellationRenderer.enabled = true;
+                constellationRenderer.shadowCastingMode = ShadowCastingMode.Off;
+                constellationRenderer.receiveShadows = false;
+            }
 
             // 1. 메인 3D 원형 튜브 링 (Main Torus Bezel Ring) - 픽셀 필터 투과용 두꺼운 두께
             GameObject mainRing = new("Bezel_MainRing");

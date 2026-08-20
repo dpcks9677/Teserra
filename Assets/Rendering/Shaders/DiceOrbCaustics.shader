@@ -5,14 +5,13 @@ Shader "DicePoC/OrbCaustics"
         _BaseColor ("Ocean Sapphire Color", Color) = (0.04, 0.16, 0.38, 0.98)
         _ShadowColor ("Deep Shadow Color", Color) = (0.015, 0.06, 0.15, 1.0)
         _CausticColor ("Deep Sapphire Wave", Color) = (0.11, 0.50, 0.76, 1.0)
-        _CausticIntensity ("Wave Intensity", Range(0.5, 4.0)) = 1.35
+        _CausticIntensity ("Wave Intensity", Range(0.0, 4.0)) = 1.35
         _WaveSpeed ("Wave Animation Speed", Range(0.05, 2.5)) = 0.65
         _WaveScale ("Wave Scale", Range(0.3, 3.0)) = 0.95
         _WaveDistortion ("Wave Warp", Range(0.1, 2.0)) = 0.75
         _RimColor ("Rim Halo Color", Color) = (0.12, 0.45, 0.72, 1.0)
         _RimPower ("Rim Power", Range(0.5, 6.0)) = 3.0
         _RimIntensity ("Rim Intensity", Range(0.2, 4.0)) = 0.65
-        _Smoothness ("Glass Smoothness", Range(0.0, 1.0)) = 0.98
     }
 
     SubShader
@@ -71,10 +70,9 @@ Shader "DicePoC/OrbCaustics"
                 float4 _RimColor;
                 float  _RimPower;
                 float  _RimIntensity;
-                float  _Smoothness;
             CBUFFER_END
 
-            // 0.6배 두께로 정밀 재조정된 실크 오로라 베일 리본 (WaveSpeed: 0.65)
+            // 실크 오로라 베일 리본 (WaveSpeed: 0.65)
             float EvaluateSmoothWaveRibbons(float3 posWS, float3 normalWS)
             {
                 float t = _Time.y * _WaveSpeed;
@@ -125,7 +123,7 @@ Shader "DicePoC/OrbCaustics"
                 float rimTerm = pow(fresnel, _RimPower);
                 half3 rimGlow = _RimColor.rgb * (rimTerm * _RimIntensity);
 
-                // 4. 주 광원 라이팅 및 선명한 둥근 글래스 스펙큘러 하이라이트
+                // 4. 주 광원 라이팅 (스페큘러 반사점 제거, 부드러운 디퓨즈 조명만 유지)
                 Light mainLight = GetMainLight();
                 float3 lightDir = normalize(mainLight.direction);
                 float NdotL = saturate(dot(normalWS, lightDir));
@@ -133,15 +131,8 @@ Shader "DicePoC/OrbCaustics"
                 half3 coolLight = lerp(mainLight.color, half3(0.60, 0.80, 0.98), 0.80);
                 half3 diffuse = bodyColor * (coolLight * (0.40 + 0.60 * NdotL));
 
-                // 맑고 선명한 글래스 반사광 (Blinn-Phong)
-                float3 halfDir = normalize(lightDir + viewDirWS);
-                float NdotH = saturate(dot(normalWS, halfDir));
-                float specularPower = lerp(40.0, 256.0, _Smoothness);
-                float specular = pow(NdotH, specularPower) * _Smoothness * 1.8;
-                half3 specColor = coolLight * specular;
-
-                // 5. 최종 합성
-                half3 finalRGB = diffuse + waveGlow + rimGlow + specColor;
+                // 5. 최종 합성: 스페큘러 반사점 없는 매끄럽고 맑은 크리스탈 표면
+                half3 finalRGB = diffuse + waveGlow + rimGlow;
                 return half4(finalRGB, 1.0);
             }
             ENDHLSL
