@@ -608,6 +608,36 @@ namespace Tessera.Games.AugmentedYacht
             RefreshAllScores();
         }
 
+        /// <summary>
+        /// 증강 효과가 이미 기록된 족보를 덮어쓸 때만 사용하는 명시적 경로.
+        /// 일반 점수 기록에서는 추가 턴이 발생하지 않도록 호출부를 분리한다.
+        /// </summary>
+        public bool OverwriteScoreFromAugment(int playerIndex, ScoreCategory category, int score)
+        {
+            if (playerIndex < 0 || playerIndex > 1) return false;
+
+            PlayerScoreData data = playerIndex == 0 ? player1Data : player2Data;
+            int categoryIndex = (int)category;
+            bool hasRecordedScore;
+
+            if (categoryIndex >= 0 && categoryIndex <= 5)
+            {
+                hasRecordedScore = data.upperScores[categoryIndex] >= 0;
+            }
+            else if (categoryIndex >= 7 && categoryIndex <= 12)
+            {
+                hasRecordedScore = data.lowerScores[categoryIndex - 7] >= 0;
+            }
+            else
+            {
+                return false;
+            }
+
+            if (!hasRecordedScore) return false;
+            SetPlayerScore(playerIndex, category, score);
+            return true;
+        }
+
         public void RefreshAllScores()
         {
             UpdatePlayerScoreUI(player1Data, p1ScoreLabels, p1BonusProgressText);

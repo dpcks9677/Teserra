@@ -60,16 +60,22 @@ namespace Tessera.Games.AugmentedYacht
         private RollOrb rollOrb;
         private RerollCounterBar rerollCounterBar;
         private HourglassTimer hourglassTimer;
+        private CozyCandleStand candleStand;
+        private RunicSlateMatrix runicSlateMatrix;
 
         public ParchmentScoreSheet ScoreSheet => parchmentScoreSheet;
         public AugmentCardTray CardTray => augmentCardTray;
         public RollOrb RollOrb => rollOrb;
         public RerollCounterBar RerollCounter => rerollCounterBar;
         public HourglassTimer Hourglass => hourglassTimer;
+        public CozyCandleStand CandleStand => candleStand;
+        public RunicSlateMatrix RunicMatrix => runicSlateMatrix;
 
         private Coroutine rollRoutine;
         private Coroutine keepRoutine;
         private Button keyLightToggleButton;
+        private Button runeFxButton;
+        private Button runeStoneButton;
         private int rollIndex;
         private bool hasCompletedRoll;
         private bool isArranging;
@@ -1127,6 +1133,8 @@ namespace Tessera.Games.AugmentedYacht
         {
             Button resolutionButton = GameObject.Find("Debug")?.GetComponent<Button>();
             keyLightToggleButton = GameObject.Find("KeyLightToggle")?.GetComponent<Button>();
+            runeFxButton = GameObject.Find("RuneFxDebug")?.GetComponent<Button>();
+            runeStoneButton = GameObject.Find("RuneStoneDebug")?.GetComponent<Button>();
             GameObject quantizeObject = GameObject.Find("Quantize");
             if (resolutionButton != null)
             {
@@ -1148,7 +1156,31 @@ namespace Tessera.Games.AugmentedYacht
                 Text label = keyLightToggleButton.GetComponentInChildren<Text>();
                 if (label != null) label.text = $"Light: {keyLightPresets[currentKeyLightPresetIndex].name}";
             }
-            if (quantizeObject != null) quantizeObject.SetActive(false);
+            
+            GameObject canvasObject = GameObject.Find("Pixel Presentation");
+            if (canvasObject != null)
+            {
+                if (runeFxButton == null)
+                {
+                    runeFxButton = CreateButton(canvasObject.transform, "RuneFxDebug", "Runes: 0/12", new Vector2(333f, -18f), new Vector2(140f, 38f), new Vector2(0f, 1f), DebugAdvanceRuneLighting);
+                }
+                if (runeStoneButton == null)
+                {
+                    runeStoneButton = CreateButton(canvasObject.transform, "RuneStoneDebug", "Stones: 0/4", new Vector2(483f, -18f), new Vector2(150f, 38f), new Vector2(0f, 1f), DebugCycleRuneStones);
+                }
+            }
+            if (runeFxButton != null)
+            {
+                runeFxButton.onClick.RemoveAllListeners();
+                runeFxButton.onClick.AddListener(DebugAdvanceRuneLighting);
+            }
+            if (runeStoneButton != null)
+            {
+                runeStoneButton.onClick.RemoveAllListeners();
+                runeStoneButton.onClick.AddListener(DebugCycleRuneStones);
+            }
+            UpdateRunicDebugButtonLabels();
+if (quantizeObject != null) quantizeObject.SetActive(false);
         }
 
         private void BuildWorld()
@@ -1324,6 +1356,34 @@ namespace Tessera.Games.AugmentedYacht
             {
                 hourglassTimer.BuildGeometry();
             }
+
+            // 11. Cozy Candle Stand
+            if (candleStand == null)
+            {
+                candleStand = layoutRoot.GetComponentInChildren<CozyCandleStand>() ?? FindFirstObjectByType<CozyCandleStand>();
+            }
+            if (candleStand == null)
+            {
+                CreateCandleStand();
+            }
+            else
+            {
+                candleStand.BuildGeometry();
+            }
+
+            // 12. Runic Slate & Crystal Matrix
+            if (runicSlateMatrix == null)
+            {
+                runicSlateMatrix = layoutRoot.GetComponentInChildren<RunicSlateMatrix>() ?? FindFirstObjectByType<RunicSlateMatrix>();
+            }
+            if (runicSlateMatrix == null)
+            {
+                CreateRunicSlateMatrix();
+            }
+            else
+            {
+                runicSlateMatrix.EnsureGeometry();
+            }
         }
 
         private void BuildTableLayout()
@@ -1331,7 +1391,7 @@ namespace Tessera.Games.AugmentedYacht
             // 기존 layoutRoot 직계 자식 정리 (중복 생성 방지)
             if (layoutRoot != null)
             {
-                string[] cleanupKeywords = { "Paper", "Score Sheet", "Layered Parchment", "Game Info", "Burgundy", "3D Wood Planks Table", "3D Fabric Runner", "Medieval Wood Planks Table", "Emerald Wide Runner", "Emerald Ribbon Runner", "Solid Burgundy Game Mat", "Augment Card Tray", "Stone Augment Card Tray", "Roll Orb", "Reroll Counter Bar", "Inkwell", "Quill", "Paperweight", "Hourglass" };
+                string[] cleanupKeywords = { "Paper", "Score Sheet", "Layered Parchment", "Game Info", "Burgundy", "3D Wood Planks Table", "3D Fabric Runner", "Medieval Wood Planks Table", "Emerald Wide Runner", "Emerald Ribbon Runner", "Solid Burgundy Game Mat", "Augment Card Tray", "Stone Augment Card Tray", "Roll Orb", "Reroll Counter Bar", "Inkwell", "Quill", "Paperweight", "Hourglass", "Candle", "Runic Slate", "Crystal Matrix" };
                 List<GameObject> directChildrenToDelete = new();
                 for (int i = 0; i < layoutRoot.childCount; i++)
                 {
@@ -1373,14 +1433,34 @@ namespace Tessera.Games.AugmentedYacht
             // Layer 7 (Top-Parchment): 양피지 상단 3D 고풍스러운 다크 조약돌 누름돌(Paperweight) 생성
             CreatePaperweight();
 
-            // Layer 8 (Tray Bottom-Left): 주사위 트레이 하단 좌측 3D 남은 롤 횟수 안내 마나 크리스탈 바
-            CreateRerollCounterBar();
-
-            // Layer 9 (Tray Bottom-Right): 주사위 트레이 하단 우측 3D 스타일라이즈드 마법 수정구 롤 오브젝트
+            // Layer 8 (Tray Bottom-Right): 주사위 트레이 하단 우측 3D 스타일라이즈드 마법 수정구 롤 오브젝트
             CreateRollOrb();
+
+            // Layer 9 (Tray Bottom-Left): 주사위 트레이 하단 좌측 3D 남은 롤 횟수 안내 마나 크리스탈 바
+            CreateRerollCounterBar();
 
             // Layer 10 (Tray Top): 주사위 트레이 상단 3D 스타일라이즈드 앤틱 모래시계 1분 타이머
             CreateHourglassTimer();
+
+            // Layer 11 (Bottom-Left): 테이블 좌측 하단 3D 코지 밀랍 양초 데코레이션 생성
+            CreateCandleStand();
+
+            // Layer 12 (Hourglass Right): 고대 룬 석판과 동적 마나 수정진 생성
+            CreateRunicSlateMatrix();
+        }
+
+        private void CreateRunicSlateMatrix()
+        {
+            Vector3 matrixPosition = new Vector3(-0.35f, 0.10f, 5.85f);
+            runicSlateMatrix = RunicSlateMatrix.Create(layoutRoot, matrixPosition, Quaternion.identity, Vector3.one * 1.3f);
+        }
+
+        private void CreateCandleStand()
+        {
+            Vector3 candlePos = new Vector3(-14f, 0.08f, -9.3f);
+            Quaternion candleRot = Quaternion.Euler(0f, 25f, 0f);
+            Vector3 candleScale = Vector3.one * 2.70f;
+            candleStand = CozyCandleStand.Create(layoutRoot, candlePos, candleRot, candleScale);
         }
 
         private void CreateHourglassTimer()
@@ -1688,7 +1768,7 @@ namespace Tessera.Games.AugmentedYacht
             if (yachtTrayMesh == null) return;
             GameObject tray = new("Yacht Tray Visual", typeof(MeshFilter), typeof(MeshRenderer));
             tray.transform.SetParent(layoutRoot, false);
-            tray.transform.localPosition = new Vector3(CenterSectionX, TrayVisualY, 0f);
+            tray.transform.localPosition = new Vector3(CenterSectionX, TrayVisualY, -0.3f);
             tray.transform.localRotation = Quaternion.identity;
             tray.transform.localScale = Vector3.one * TrayScale;
 
@@ -1752,6 +1832,64 @@ namespace Tessera.Games.AugmentedYacht
             }
         }
 
+        public void DebugAdvanceRuneLighting()
+        {
+            ResolveRunicMatrix();
+            runicSlateMatrix?.AdvanceDebugRuneLighting();
+            UpdateRunicDebugButtonLabels();
+        }
+
+        public void DebugCycleRuneStones()
+        {
+            ResolveRunicMatrix();
+            runicSlateMatrix?.CycleDebugRuneStoneCount();
+            UpdateRunicDebugButtonLabels();
+        }
+
+        public void GrantExtraTurnsFromAugment(int amount)
+        {
+            ResolveRunicMatrix();
+            runicSlateMatrix?.GrantExtraTurns(amount);
+        }
+
+        public bool ConsumeExtraTurn()
+        {
+            ResolveRunicMatrix();
+            return runicSlateMatrix != null && runicSlateMatrix.ConsumeExtraTurn();
+        }
+
+        public bool ApplyAugmentScoreOverwrite(int playerIndex, ScoreCategory category, int score, int grantedExtraTurns)
+        {
+            if (parchmentScoreSheet == null) parchmentScoreSheet = FindFirstObjectByType<ParchmentScoreSheet>();
+            if (parchmentScoreSheet == null || !parchmentScoreSheet.OverwriteScoreFromAugment(playerIndex, category, score)) return false;
+
+            GrantExtraTurnsFromAugment(grantedExtraTurns);
+            return true;
+        }
+
+        private void ResolveRunicMatrix()
+        {
+            if (runicSlateMatrix == null) runicSlateMatrix = FindFirstObjectByType<RunicSlateMatrix>();
+            if (runicSlateMatrix == null) return;
+
+            runicSlateMatrix.StateChanged -= UpdateRunicDebugButtonLabels;
+            runicSlateMatrix.StateChanged += UpdateRunicDebugButtonLabels;
+        }
+
+        private void UpdateRunicDebugButtonLabels()
+        {
+            ResolveRunicMatrix();
+            int runeProgress = runicSlateMatrix != null ? runicSlateMatrix.OuterRuneProgress : 0;
+            int stoneCount = runicSlateMatrix != null ? runicSlateMatrix.ExtraTurnCount : 0;
+            int stoneCapacity = runicSlateMatrix != null ? runicSlateMatrix.MaxExtraTurns : 4;
+
+            Text runeLabel = runeFxButton != null ? runeFxButton.GetComponentInChildren<Text>() : null;
+            if (runeLabel != null) runeLabel.text = $"Runes: {runeProgress}/12";
+
+            Text stoneLabel = runeStoneButton != null ? runeStoneButton.GetComponentInChildren<Text>() : null;
+            if (stoneLabel != null) stoneLabel.text = $"Stones: {stoneCount}/{stoneCapacity}";
+        }
+
         private void BuildPresentation()
         {
             EnsureEventSystem();
@@ -1802,7 +1940,10 @@ namespace Tessera.Games.AugmentedYacht
             imageObject.SetActive(true);
 
             CreateButton(canvasObject.transform, "Debug", "960 / 640", new Vector2(18f, -18f), new Vector2(130f, 38f), new Vector2(0f, 1f), ToggleResolution);
-            keyLightToggleButton = CreateButton(canvasObject.transform, "KeyLightToggle", $"Light: {keyLightPresets[currentKeyLightPresetIndex].name}", new Vector2(158f, -18f), new Vector2(165f, 38f), new Vector2(0f, 1f), ToggleKeyLightPreset);
+            
+            runeFxButton = CreateButton(canvasObject.transform, "RuneFxDebug", "Runes: 0/12", new Vector2(333f, -18f), new Vector2(140f, 38f), new Vector2(0f, 1f), DebugAdvanceRuneLighting);
+            runeStoneButton = CreateButton(canvasObject.transform, "RuneStoneDebug", "Stones: 0/4", new Vector2(483f, -18f), new Vector2(150f, 38f), new Vector2(0f, 1f), DebugCycleRuneStones);
+keyLightToggleButton = CreateButton(canvasObject.transform, "KeyLightToggle", $"Light: {keyLightPresets[currentKeyLightPresetIndex].name}", new Vector2(158f, -18f), new Vector2(165f, 38f), new Vector2(0f, 1f), ToggleKeyLightPreset);
 
             statusText = CreateText(canvasObject.transform, "Status", "", new Vector2(0f, -20f), new Vector2(600f, 30f), new Vector2(0.5f, 1f), 15, TextAnchor.MiddleCenter);
             Canvas.ForceUpdateCanvases();

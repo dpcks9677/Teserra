@@ -303,12 +303,13 @@ namespace Tessera.Tabletop
             }
 
             Shader litShader = Shader.Find("Universal Render Pipeline/Lit") ?? Shader.Find("Standard");
+            Shader stoneShader = Shader.Find("Universal Render Pipeline/Unlit") ?? litShader;
 
             // 1. 머티리얼 구성
             // 1-1. 스톤 베이스 머티리얼 (Aged Warm Slate / Marble)
-            Material stoneBaseMat = CreateMat(litShader, "Orb_StoneBaseMat", new Color(0.52f, 0.56f, 0.60f), 0.05f, 0.32f);
+            Material stoneBaseMat = CreateMat(stoneShader, "Orb_StoneBaseMat", new Color(0.52f, 0.56f, 0.60f), 0.05f, 0.32f);
             Material marblePillarMat = CreateMat(litShader, "Orb_MarblePillarMat", new Color(0.72f, 0.76f, 0.80f), 0.08f, 0.48f);
-            Material stoneRimMat = CreateMat(litShader, "Orb_StoneRimMat", new Color(0.34f, 0.38f, 0.42f), 0.04f, 0.28f);
+            Material stoneRimMat = CreateMat(stoneShader, "Orb_StoneRimMat", new Color(0.34f, 0.38f, 0.42f), 0.04f, 0.28f);
 
             // 1-2. 앤틱 골든 림 & 장식 머티리얼 (Antique Brass / Gold)
             Material goldTrimMat = CreateMat(litShader, "Orb_GoldTrimMat", new Color(0.86f, 0.68f, 0.28f), 0.88f, 0.68f);
@@ -1004,17 +1005,17 @@ namespace Tessera.Tabletop
             psRenderer.material = psMat;
         }
 
-        private static Material CreateMat(Shader shader, string name, Color color, float metallic, float smoothness)
+private static Material CreateMat(Shader shader, string name, Color color, float metallic, float smoothness)
         {
             Material m = new(shader) { name = name };
             if (m.HasProperty("_BaseColor")) m.SetColor("_BaseColor", color);
             if (m.HasProperty("_Color")) m.SetColor("_Color", color);
-            m.SetFloat("_Metallic", metallic);
-            m.SetFloat("_Smoothness", smoothness);
+            if (m.HasProperty("_Metallic")) m.SetFloat("_Metallic", metallic);
+            if (m.HasProperty("_Smoothness")) m.SetFloat("_Smoothness", smoothness);
             return m;
         }
 
-        private static Material CreateTransparentMat(Shader shader, string name, Color color, float metallic, float smoothness)
+private static Material CreateTransparentMat(Shader shader, string name, Color color, float metallic, float smoothness)
         {
             Material m = new(shader) { name = name };
             if (m.HasProperty("_Surface")) m.SetFloat("_Surface", 1f); // 1 = Transparent
